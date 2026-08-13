@@ -8,11 +8,10 @@
         /* Base Setup */
         body, html {
             margin: 0; padding: 0; height: 100%; overflow: hidden;
-            background-color: #1a1a2e; /* Fallback color */
+            background-color: #1a1a2e;
             font-family: "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
         }
 
-        /* The Background Video */
         #bg-video {
             position: fixed; right: 0; bottom: 0; min-width: 100%; min-height: 100%;
             z-index: -2; object-fit: cover;
@@ -21,112 +20,53 @@
 
         /* Live Clock (Top Left Corner) */
         .live-clock {
-            position: absolute;
-            top: 30px;
-            left: 40px;
-            color: rgba(255, 255, 255, 0.9);
-            font-size: 22px;
-            font-weight: 500;
-            letter-spacing: 1px;
-            z-index: 1;
-            text-shadow: 0 2px 10px rgba(0,0,0,0.6);
+            position: absolute; top: 30px; left: 40px;
+            color: rgba(255, 255, 255, 0.9); font-size: 22px; font-weight: 500;
+            letter-spacing: 1px; z-index: 1; text-shadow: 0 2px 10px rgba(0,0,0,0.6);
         }
 
         /* The Pill-Shaped Bottom Bar */
         .player-bar {
-            position: absolute;
-            bottom: 30px;
-            left: 50%;
-            transform: translateX(-50%);
-            width: 800px;
-            max-width: 90%;
-            height: 75px;
-            background: rgba(20, 20, 20, 0.4);
-            backdrop-filter: blur(15px);
-            -webkit-backdrop-filter: blur(15px);
-            border: 1px solid rgba(255, 255, 255, 0.1);
-            border-radius: 40px; 
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            padding: 0 25px;
-            box-sizing: border-box;
-            z-index: 1;
-            color: white;
+            position: absolute; bottom: 30px; left: 50%; transform: translateX(-50%);
+            width: 800px; max-width: 90%; height: 75px;
+            background: rgba(20, 20, 20, 0.4); backdrop-filter: blur(15px);
+            -webkit-backdrop-filter: blur(15px); border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 40px; display: flex; align-items: center; justify-content: space-between;
+            padding: 0 25px; box-sizing: border-box; z-index: 1; color: white;
             box-shadow: 0 10px 30px rgba(0,0,0,0.5);
         }
 
-        /* Left Side: Track Info */
-        .track-info {
-            display: flex;
-            align-items: center;
-            gap: 15px;
-            width: 65%;
-        }
+        .track-info { display: flex; align-items: center; gap: 15px; width: 65%; }
 
         .album-art {
-            width: 45px;
-            height: 45px;
-            border-radius: 50%;
+            width: 45px; height: 45px; border-radius: 50%;
             background-image: url('https://images.unsplash.com/photo-1614165936126-22485bb5a52b?q=80&w=200&auto=format&fit=crop'); 
-            background-size: cover;
-            background-position: center;
-            animation: spin 8s linear infinite;
-            animation-play-state: paused; 
+            background-size: cover; background-position: center;
+            animation: spin 8s linear infinite; animation-play-state: paused; 
         }
         .album-art.playing { animation-play-state: running; }
-
         @keyframes spin { 100% { transform: rotate(360deg); } }
 
-        .track-details {
-            display: flex;
-            flex-direction: column;
-            flex-grow: 1;
-            justify-content: center;
-        }
+        .track-details { display: flex; flex-direction: column; flex-grow: 1; justify-content: center; overflow: hidden; }
 
         .track-title {
-            font-size: 15px;
-            font-weight: 600;
-            margin: 0 0 2px 0;
-            letter-spacing: 0.5px;
+            font-size: 15px; font-weight: 600; margin: 0 0 2px 0; letter-spacing: 0.5px;
+            white-space: nowrap; overflow: hidden; text-overflow: ellipsis; /* Keeps long titles tidy */
         }
 
-        .track-artist {
-            font-size: 11px;
-            color: #b3b3b3;
-            margin: 0 0 6px 0;
-        }
+        .track-artist { font-size: 11px; color: #b3b3b3; margin: 0 0 6px 0; }
 
-        /* The Progress Bar Line */
-        .progress-container {
-            display: flex;
-            align-items: center;
-            gap: 10px;
-        }
-
+        .progress-container { display: flex; align-items: center; gap: 10px; }
         .time-text { font-size: 10px; color: #b3b3b3; min-width: 25px; }
+        .progress-bar-bg { flex-grow: 1; height: 3px; background: rgba(255, 255, 255, 0.2); border-radius: 2px; position: relative; }
+        .progress-bar-fill { position: absolute; left: 0; top: 0; height: 100%; background: #fff; width: 0%; border-radius: 2px; transition: width 1s linear; }
 
-        .progress-bar-bg {
-            flex-grow: 1; height: 3px; background: rgba(255, 255, 255, 0.2);
-            border-radius: 2px; position: relative;
-        }
-        
-        .progress-bar-fill {
-            position: absolute; left: 0; top: 0; height: 100%;
-            background: #fff; width: 0%; border-radius: 2px;
-            transition: width 1s linear;
-        }
-
-        /* Right Side: Controls */
         .controls { display: flex; align-items: center; gap: 15px; }
-
         .ctrl-btn {
             background: none; border: none; color: #fff; cursor: pointer;
             font-size: 14px; display: flex; justify-content: center; align-items: center;
             opacity: 0.7; transition: opacity 0.2s, transform 0.1s; padding: 0;
         }
-        
         .ctrl-btn:hover { opacity: 1; }
         .ctrl-btn:active { transform: scale(0.9); }
 
@@ -136,27 +76,23 @@
         }
         .play-pause-btn.is-playing { padding-left: 0; }
 
-        /* Hidden YouTube Player */
         #youtube-player-container { position: absolute; top: -9999px; left: -9999px; visibility: hidden; }
     </style>
 </head>
 <body>
 
-    <!-- Live Clock Element -->
     <div class="live-clock" id="live-clock">00:00 AM</div>
 
-    <!-- Background Video Layer -->
     <video autoplay loop muted playsinline id="bg-video">
         <source src="video1.mp4" type="video/mp4">
     </video>
 
-    <!-- The Pill Bar -->
     <div class="player-bar">
-        <!-- Left Side -->
         <div class="track-info">
             <div class="album-art" id="art"></div>
             <div class="track-details">
-                <div class="track-title" id="song-title">Lofi Station Stream</div>
+                <!-- Song title updates live here -->
+                <div class="track-title" id="song-title">Click Play to Start</div>
                 <div class="track-artist">YouTube Playlist</div>
                 <div class="progress-container">
                     <span class="time-text" id="current-time">0:00</span>
@@ -168,7 +104,6 @@
             </div>
         </div>
 
-        <!-- Right Side -->
         <div class="controls">
             <button class="ctrl-btn" onclick="prevTrack()">⏮</button>
             <button class="ctrl-btn play-pause-btn" id="play-btn" onclick="togglePlay()">▶</button>
@@ -176,30 +111,25 @@
         </div>
     </div>
 
-    <!-- Hidden YouTube API -->
     <div id="youtube-player-container">
         <div id="youtube-player"></div>
     </div>
 
     <script>
-        // --- Live Clock Logic ---
+        // Clock Script
         function updateClock() {
             const now = new Date();
             let hours = now.getHours();
             let minutes = now.getMinutes();
             const ampm = hours >= 12 ? 'PM' : 'AM';
-            
-            hours = hours % 12;
-            hours = hours ? hours : 12; // the hour '0' should be '12'
+            hours = hours % 12; hours = hours ? hours : 12;
             minutes = minutes < 10 ? '0' + minutes : minutes;
-            
-            const timeString = hours + ':' + minutes + ' ' + ampm;
-            document.getElementById('live-clock').innerText = timeString;
+            document.getElementById('live-clock').innerText = hours + ':' + minutes + ' ' + ampm;
         }
         setInterval(updateClock, 1000);
-        updateClock(); // Run immediately on load
+        updateClock();
 
-        // --- YouTube API Logic ---
+        // YouTube API Script
         var tag = document.createElement('script');
         tag.src = "https://www.youtube.com/iframe_api";
         var firstScriptTag = document.getElementsByTagName('script')[0];
@@ -230,7 +160,8 @@
             return minutes + ":" + (seconds < 10 ? "0" : "") + seconds;
         }
 
-        function updateProgressBar() {
+        // Updates progress bar and pulls the active song title from YouTube
+        function updatePlayerInfo() {
             if (player && player.getCurrentTime) {
                 const current = player.getCurrentTime();
                 const duration = player.getDuration();
@@ -242,6 +173,14 @@
                     const percentage = (current / duration) * 100;
                     document.getElementById('progress-fill').style.width = percentage + "%";
                 }
+
+                // Grabs the real-time song title directly from YouTube video data
+                if (typeof player.getVideoData === 'function') {
+                    const videoData = player.getVideoData();
+                    if (videoData && videoData.title) {
+                        document.getElementById('song-title').innerText = videoData.title;
+                    }
+                }
             }
         }
 
@@ -249,7 +188,7 @@
             if (event.data == YT.PlayerState.PLAYING) {
                 isPlaying = true;
                 updateUIForPlay();
-                progressInterval = setInterval(updateProgressBar, 1000);
+                progressInterval = setInterval(updatePlayerInfo, 1000);
             } else {
                 isPlaying = false;
                 updateUIForPause();
@@ -275,23 +214,15 @@
 
         function togglePlay() {
             if (player && typeof player.playVideo === 'function') {
-                if (isPlaying) {
-                    player.pauseVideo();
-                } else {
-                    player.playVideo();
-                }
+                if (isPlaying) { player.pauseVideo(); } 
+                else { player.playVideo(); }
             }
         }
         
-        function nextTrack() {
-            if (player && typeof player.nextVideo === 'function') { player.nextVideo(); }
-        }
+        function nextTrack() { if (player && typeof player.nextVideo === 'function') { player.nextVideo(); } }
+        function prevTrack() { if (player && typeof player.previousVideo === 'function') { player.previousVideo(); } }
 
-        function prevTrack() {
-            if (player && typeof player.previousVideo === 'function') { player.previousVideo(); }
-        }
-
-        // --- 30 Minute Background Video Switcher ---
+        // Background Video 30-Minute Switcher
         const bgVideoElement = document.getElementById('bg-video');
         const playlistVideos = ['video1.mp4', 'video2.mp4'];
         let currentVideoIndex = 0;
