@@ -3,267 +3,319 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Lofi Streamer</title>
+    <title>Lofi Radio Stream</title>
+    
+    <!-- Tailwind CSS for rapid styling -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Phosphor Icons for minimalist playback controls -->
+    <script src="https://unpkg.com/@phosphor-icons/web"></script>
+    <!-- Google Fonts (Inter for clean UI) -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet">
+    
     <style>
-        body, html {
-            margin: 0; padding: 0; height: 100%; overflow: hidden;
-            background-color: #1a1a2e;
-            font-family: "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+        body {
+            font-family: 'Inter', sans-serif;
+            margin: 0;
+            padding: 0;
+            overflow: hidden; /* Prevent scrolling */
+            background-color: #000;
         }
 
-        /* Background WebP Image/Animation Layer */
-        #bg-webp {
-            position: fixed; right: 0; bottom: 0; min-width: 100%; min-height: 100%;
-            z-index: -2; object-fit: cover;
-            transition: opacity 1s ease-in-out;
+        /* Exact background styling requested */
+        .bg-img {
+            position: fixed;
+            right: 0;
+            bottom: 0;
+            min-width: 100%;
+            min-height: 100%;
+            z-index: -2;
+            object-fit: cover;
+            transition: opacity 2s ease-in-out;
         }
 
-        #splash-screen {
-            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
-            background: rgba(10, 10, 15, 0.85);
-            backdrop-filter: blur(20px);
-            -webkit-backdrop-filter: blur(20px);
-            display: flex; flex-direction: column; justify-content: center; align-items: center;
-            z-index: 10; transition: opacity 0.5s ease;
+        /* Glassmorphism utility for the pill bar */
+        .glass-pill {
+            background: rgba(20, 20, 20, 0.5);
+            backdrop-filter: blur(16px);
+            -webkit-backdrop-filter: blur(16px);
+            border: 1px solid rgba(255, 255, 255, 0.15);
+            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.4);
         }
 
-        .enter-btn {
-            background: #fff; color: #000; border: none; padding: 15px 40px;
-            font-size: 16px; font-weight: 600; border-radius: 30px; cursor: pointer;
-            box-shadow: 0 10px 30px rgba(255,255,255,0.2); transition: transform 0.2s, background 0.2s;
-            letter-spacing: 1px; text-transform: uppercase;
-        }
-        .enter-btn:hover { background: #e0e0e0; transform: scale(1.05); }
-
-        .live-clock {
-            position: absolute; top: 30px; left: 40px;
-            color: rgba(255, 255, 255, 0.9); font-size: 22px; font-weight: 500;
-            letter-spacing: 1px; z-index: 1; text-shadow: 0 2px 10px rgba(0,0,0,0.6);
-        }
-
-        .player-bar {
-            position: absolute; bottom: 30px; left: 50%; transform: translateX(-50%);
-            width: 800px; max-width: 90%; height: 75px;
-            background: rgba(20, 20, 20, 0.4); backdrop-filter: blur(15px);
-            -webkit-backdrop-filter: blur(15px); border: 1px solid rgba(255, 255, 255, 0.1);
-            border-radius: 40px; display: flex; align-items: center; justify-content: space-between;
-            padding: 0 25px; box-sizing: border-box; z-index: 1; color: white;
-            box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+        /* Vinyl record center hole */
+        .vinyl-center {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            width: 12px;
+            height: 12px;
+            background-color: rgba(20, 20, 20, 0.8);
+            border-radius: 50%;
+            border: 1px solid rgba(255, 255, 255, 0.1);
         }
 
-        .track-info { display: flex; align-items: center; gap: 15px; width: 65%; }
-
-        .album-art {
-            width: 45px; height: 45px; border-radius: 50%;
-            background-image: url('https://images.unsplash.com/photo-1614165936126-22485bb5a52b?q=80&w=200&auto=format&fit=crop'); 
-            background-size: cover; background-position: center;
-            animation: spin 8s linear infinite; animation-play-state: paused; 
+        /* Custom slow spin animation for the active record */
+        .spin-slow {
+            animation: spin 6s linear infinite;
         }
-        .album-art.playing { animation-play-state: running; }
-        @keyframes spin { 100% { transform: rotate(360deg); } }
-
-        .track-details { display: flex; flex-direction: column; flex-grow: 1; justify-content: center; overflow: hidden; }
-
-        .track-title {
-            font-size: 15px; font-weight: 600; margin: 0 0 2px 0; letter-spacing: 0.5px;
-            white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+        @keyframes spin {
+            from { transform: rotate(0deg); }
+            to { transform: rotate(360deg); }
         }
 
-        .track-artist { font-size: 11px; color: #b3b3b3; margin: 0 0 6px 0; }
-
-        .progress-container { display: flex; align-items: center; gap: 10px; }
-        .time-text { font-size: 10px; color: #b3b3b3; min-width: 25px; }
-        .progress-bar-bg { flex-grow: 1; height: 3px; background: rgba(255, 255, 255, 0.2); border-radius: 2px; position: relative; }
-        .progress-bar-fill { position: absolute; left: 0; top: 0; height: 100%; background: #fff; width: 0%; border-radius: 2px; transition: width 1s linear; }
-
-        .controls { display: flex; align-items: center; gap: 15px; }
-        .ctrl-btn {
-            background: none; border: none; color: #fff; cursor: pointer;
-            font-size: 14px; display: flex; justify-content: center; align-items: center;
-            opacity: 0.7; transition: opacity 0.2s, transform 0.1s; padding: 0;
+        /* Text shadow for better visibility on bright backgrounds */
+        .text-shadow {
+            text-shadow: 0px 2px 10px rgba(0, 0, 0, 0.6);
         }
-        .ctrl-btn:hover { opacity: 1; }
-        .ctrl-btn:active { transform: scale(0.9); }
-
-        .play-pause-btn {
-            width: 36px; height: 36px; background: #fff; color: #000;
-            border-radius: 50%; font-size: 16px; opacity: 1; padding-left: 2px; 
-        }
-        .play-pause-btn.is-playing { padding-left: 0; }
-
-        #youtube-player-container { position: absolute; top: -9999px; left: -9999px; visibility: hidden; }
     </style>
 </head>
-<body>
+<body class="text-white selection:bg-white/30 antialiased">
 
-    <div id="splash-screen">
-        <button class="enter-btn" onclick="startExperience()">Enter Station</button>
+    <!-- Splash Screen: Required to bypass browser autoplay policies gracefully -->
+    <div id="splash" class="fixed inset-0 z-50 flex flex-col items-center justify-center bg-black/80 backdrop-blur-md transition-opacity duration-700">
+        <h1 class="text-4xl font-semibold tracking-wide mb-8">Lofi Radio</h1>
+        <button id="splash-btn" disabled class="px-8 py-3 bg-white text-black font-medium rounded-full shadow-lg hover:scale-105 transition-all opacity-50 cursor-not-allowed">
+            Loading Player...
+        </button>
     </div>
 
-    <div class="live-clock" id="live-clock">00:00 AM</div>
+    <!-- Background Images Container -->
+    <!-- Image 1 (Visible by default) -->
+    <img id="bg1" class="bg-img opacity-100" src="make_this_image_into_a_animati.webp" alt="Lofi Background 1" onerror="this.src='https://images.unsplash.com/photo-1519681393784-d120267933ba?auto=format&fit=crop&w=1920&q=80'">
+    <!-- Image 2 (Hidden by default) -->
+    <img id="bg2" class="bg-img opacity-0" src="make_this_image_into_a_animati (1) (1).webp" alt="Lofi Background 2" onerror="this.src='https://images.unsplash.com/photo-1507525428034-b723cf961d3e?auto=format&fit=crop&w=1920&q=80'">
 
-    <!-- WebP Background Image Container -->
-    <img id="bg-webp" src="make_this_image_into_a_animati.webp" alt="Background Animation">
+    <!-- Top-Left Corner: Live Clock -->
+    <div class="fixed top-8 left-8 z-10 select-none">
+        <div class="flex items-baseline gap-1 text-shadow">
+            <span id="clock-time" class="text-5xl font-light tracking-tight">--:--</span>
+            <span id="clock-ampm" class="text-xl font-medium text-white/80"></span>
+        </div>
+    </div>
 
-    <div class="player-bar">
-        <div class="track-info">
-            <div class="album-art" id="art"></div>
-            <div class="track-details">
-                <div class="track-title" id="song-title">Click Enter to Start</div>
-                <div class="track-artist">YouTube Playlist</div>
-                <div class="progress-container">
-                    <span class="time-text" id="current-time">0:00</span>
-                    <div class="progress-bar-bg">
-                        <div class="progress-bar-fill" id="progress-fill"></div>
-                    </div>
-                    <span class="time-text" id="total-time">0:00</span>
+    <!-- Bottom Center: Frosted Glass Pill Bar -->
+    <div class="fixed bottom-8 left-1/2 -translate-x-1/2 w-[92%] max-w-2xl glass-pill rounded-[2.5rem] px-5 py-4 flex items-center justify-between z-40">
+        
+        <!-- Left Side: Track Info & Album Art -->
+        <div class="flex items-center gap-4 flex-1 overflow-hidden pr-4">
+            
+            <!-- Spinning Album Art Thumbnail -->
+            <div class="relative w-16 h-16 rounded-full overflow-hidden shrink-0 border border-white/20 shadow-md">
+                <img id="album-art" src="https://placehold.co/150x150/1a1a1a/ffffff?text=Lofi" alt="Album Art" class="w-full h-full object-cover transition-transform duration-500">
+                <div class="vinyl-center"></div>
+            </div>
+
+            <!-- Title, Subtitle, and Progress Bar -->
+            <div class="flex flex-col justify-center flex-1 min-w-0">
+                <div id="track-title" class="truncate text-base font-semibold tracking-wide">Connecting to stream...</div>
+                <div id="track-artist" class="truncate text-sm text-gray-300 mb-2">Fetching playlist info</div>
+                
+                <!-- Horizontal Progress Bar -->
+                <div class="w-full h-1.5 bg-white/20 rounded-full overflow-hidden flex items-center">
+                    <div id="progress-fill" class="h-full bg-white w-0 transition-all duration-300 ease-linear rounded-full"></div>
                 </div>
             </div>
         </div>
 
-        <div class="controls">
-            <button class="ctrl-btn" onclick="prevTrack()">⏮</button>
-            <button class="ctrl-btn play-pause-btn" id="play-btn" onclick="togglePlay()">▶</button>
-            <button class="ctrl-btn" onclick="nextTrack()">⏭</button>
+        <!-- Right Side: Minimalist Controls -->
+        <div class="flex items-center gap-5 shrink-0 pl-2">
+            <!-- Previous Button -->
+            <button id="btn-prev" class="text-white/70 hover:text-white hover:scale-110 transition-all focus:outline-none">
+                <i class="ph ph-skip-back-circle text-4xl"></i>
+            </button>
+            
+            <!-- Play/Pause Button (Solid white circle) -->
+            <button id="btn-playpause" class="w-14 h-14 bg-white text-black rounded-full flex items-center justify-center hover:scale-105 hover:bg-gray-100 transition-all shadow-lg focus:outline-none">
+                <i id="icon-playpause" class="ph-fill ph-play text-2xl ml-1"></i> <!-- ml-1 to visually center the play triangle -->
+            </button>
+            
+            <!-- Next Button -->
+            <button id="btn-next" class="text-white/70 hover:text-white hover:scale-110 transition-all focus:outline-none">
+                <i class="ph ph-skip-forward-circle text-4xl"></i>
+            </button>
         </div>
     </div>
 
-    <div id="youtube-player-container">
-        <div id="youtube-player"></div>
-    </div>
+    <!-- Hidden YouTube Player Container -->
+    <div id="ytplayer" class="hidden absolute opacity-0 pointer-events-none"></div>
 
     <script>
-        function startExperience() {
-            const splash = document.getElementById('splash-screen');
-            splash.style.opacity = '0';
-            setTimeout(() => { splash.style.display = 'none'; }, 500);
-
-            if (player && typeof player.playVideo === 'function') {
-                player.playVideo();
-            }
-        }
-
-        // Clock Script
+        // --- 1. Clock Logic ---
         function updateClock() {
             const now = new Date();
             let hours = now.getHours();
             let minutes = now.getMinutes();
             const ampm = hours >= 12 ? 'PM' : 'AM';
-            hours = hours % 12; hours = hours ? hours : 12;
+            
+            hours = hours % 12;
+            hours = hours ? hours : 12; // the hour '0' should be '12'
             minutes = minutes < 10 ? '0' + minutes : minutes;
-            document.getElementById('live-clock').innerText = hours + ':' + minutes + ' ' + ampm;
+            
+            document.getElementById('clock-time').innerText = `${hours}:${minutes}`;
+            document.getElementById('clock-ampm').innerText = ampm;
         }
         setInterval(updateClock, 1000);
-        updateClock();
+        updateClock(); // Initial call
 
-        // YouTube API Script
-        var tag = document.createElement('script');
+        // --- 2. Background Image Crossfader (30 mins) ---
+        const BG_INTERVAL_MS = 30 * 60 * 1000; // 30 minutes in milliseconds
+        let showingBg1 = true;
+        
+        setInterval(() => {
+            const bg1 = document.getElementById('bg1');
+            const bg2 = document.getElementById('bg2');
+            
+            if (showingBg1) {
+                bg1.style.opacity = '0';
+                bg2.style.opacity = '1';
+            } else {
+                bg1.style.opacity = '1';
+                bg2.style.opacity = '0';
+            }
+            showingBg1 = !showingBg1;
+        }, BG_INTERVAL_MS);
+
+        // --- 3. YouTube Iframe API Integration ---
+        let player;
+        let isReady = false;
+        let isPlaying = false;
+        let progressInterval;
+
+        // Dynamically load the YouTube Iframe API script
+        const tag = document.createElement('script');
         tag.src = "https://www.youtube.com/iframe_api";
-        var firstScriptTag = document.getElementsByTagName('script')[0];
+        const firstScriptTag = document.getElementsByTagName('script')[0];
         firstScriptTag.parentNode.insertBefore(tag, firstScriptTag);
 
-        var player;
-        var isPlaying = false;
-        var progressInterval;
-
         function onYouTubeIframeAPIReady() {
-            player = new YT.Player('youtube-player', {
-                height: '10', width: '10',
+            player = new YT.Player('ytplayer', {
+                height: '0',
+                width: '0',
                 playerVars: {
-                    'listType': 'playlist',
-                    'list': 'PL735nzlwLB47cmb2kjt-lJXPYU9fZS6Ru',
-                    'autoplay': 0, 'controls': 0, 'loop': 1, 'modestbranding': 1
+                    listType: 'playlist',
+                    list: 'PL735nzlwLB47cmb2kjt-lJXPYU9fZS6Ru', // The requested Playlist ID
+                    autoplay: 0,
+                    controls: 0,
+                    disablekb: 1,
+                    fs: 0,
+                    modestbranding: 1,
+                    playsinline: 1
                 },
                 events: {
+                    'onReady': onPlayerReady,
                     'onStateChange': onPlayerStateChange
                 }
             });
         }
 
-        function formatTime(time) {
-            if (isNaN(time)) return "0:00";
-            const minutes = Math.floor(time / 60);
-            const seconds = Math.floor(time % 60);
-            return minutes + ":" + (seconds < 10 ? "0" : "") + seconds;
+        function onPlayerReady(event) {
+            isReady = true;
+            // Enable the Splash Screen button
+            const splashBtn = document.getElementById('splash-btn');
+            splashBtn.innerText = "Enter Station";
+            splashBtn.classList.remove('opacity-50', 'cursor-not-allowed');
+            splashBtn.disabled = false;
         }
 
-        function updatePlayerInfo() {
-            if (player && player.getCurrentTime) {
-                const current = player.getCurrentTime();
-                const duration = player.getDuration();
+        function onPlayerStateChange(event) {
+            const albumArt = document.getElementById('album-art');
+            const playIcon = document.getElementById('icon-playpause');
+            
+            if (event.data === YT.PlayerState.PLAYING) {
+                isPlaying = true;
                 
-                document.getElementById('current-time').innerText = formatTime(current);
-                document.getElementById('total-time').innerText = formatTime(duration);
+                // Update icons and animations
+                playIcon.classList.remove('ph-play');
+                playIcon.classList.add('ph-pause');
+                playIcon.classList.remove('ml-1'); // Remove centering offset for pause icon
+                albumArt.classList.add('spin-slow');
                 
-                if (duration > 0) {
-                    const percentage = (current / duration) * 100;
-                    document.getElementById('progress-fill').style.width = percentage + "%";
-                }
+                updateTrackMetadata();
+                startProgressTracker();
+            } else {
+                isPlaying = false;
+                
+                // Pause icons and animations
+                playIcon.classList.remove('ph-pause');
+                playIcon.classList.add('ph-play');
+                playIcon.classList.add('ml-1'); 
+                albumArt.classList.remove('spin-slow');
+                
+                stopProgressTracker();
+            }
+        }
 
-                if (typeof player.getVideoData === 'function') {
-                    const videoData = player.getVideoData();
-                    if (videoData && videoData.title) {
-                        document.getElementById('song-title').innerText = videoData.title;
-                    }
+        function updateTrackMetadata() {
+            if (!player || !player.getVideoData) return;
+            
+            const data = player.getVideoData();
+            if (data && data.title) {
+                // Remove generic terms from typical YouTube lofi streams if desired, or keep as is.
+                document.getElementById('track-title').innerText = data.title;
+                document.getElementById('track-artist').innerText = data.author || "Lofi Radio Stream";
+                
+                // Fetch highest quality thumbnail via YouTube img server
+                const videoId = data.video_id;
+                if (videoId) {
+                    const thumbUrl = `https://img.youtube.com/vi/${videoId}/maxresdefault.jpg`;
+                    // Fallback to hqdefault if maxres doesn't exist
+                    document.getElementById('album-art').src = thumbUrl;
+                    document.getElementById('album-art').onerror = function() {
+                        this.src = `https://img.youtube.com/vi/${videoId}/hqdefault.jpg`;
+                    };
                 }
             }
         }
 
-        function onPlayerStateChange(event) {
-            if (event.data == YT.PlayerState.PLAYING) {
-                isPlaying = true;
-                updateUIForPlay();
-                progressInterval = setInterval(updatePlayerInfo, 1000);
-            } else {
-                isPlaying = false;
-                updateUIForPause();
+        function startProgressTracker() {
+            stopProgressTracker();
+            progressInterval = setInterval(() => {
+                if (player && player.getCurrentTime && player.getDuration) {
+                    const current = player.getCurrentTime();
+                    const duration = player.getDuration();
+                    if (duration > 0) {
+                        const percent = (current / duration) * 100;
+                        document.getElementById('progress-fill').style.width = `${percent}%`;
+                    }
+                }
+            }, 500);
+        }
+
+        function stopProgressTracker() {
+            if (progressInterval) {
                 clearInterval(progressInterval);
             }
         }
 
-        function updateUIForPlay() {
-            const cd = document.getElementById('art');
-            const playBtn = document.getElementById('play-btn');
-            playBtn.innerHTML = "⏸"; 
-            playBtn.classList.add('is-playing');
-            cd.classList.add('playing');
-        }
-
-        function updateUIForPause() {
-            const cd = document.getElementById('art');
-            const playBtn = document.getElementById('play-btn');
-            playBtn.innerHTML = "▶"; 
-            playBtn.classList.remove('is-playing');
-            cd.classList.remove('playing');
-        }
-
-        function togglePlay() {
-            if (player && typeof player.playVideo === 'function') {
-                if (isPlaying) { player.pauseVideo(); } 
-                else { player.playVideo(); }
+        // --- 4. Event Listeners ---
+        // Splash Screen Enter
+        document.getElementById('splash-btn').addEventListener('click', () => {
+            if (isReady) {
+                document.getElementById('splash').classList.add('opacity-0', 'pointer-events-none');
+                player.playVideo();
             }
-        }
-        
-        function nextTrack() { if (player && typeof player.nextVideo === 'function') { player.nextVideo(); } }
-        function prevTrack() { if (player && typeof player.previousVideo === 'function') { player.previousVideo(); } }
+        });
 
-        // 30-Minute WebP Switcher
-        const bgWebpImage = document.getElementById('bg-webp');
-        const webpFiles = [
-            'make_this_image_into_a_animati.webp', 
-            'make_this_image_into_a_animati (1) (1).webp'
-        ];
-        let currentWebpIndex = 0;
-        const THIRTY_MINUTES = 30 * 60 * 1000; 
+        // Play/Pause Button
+        document.getElementById('btn-playpause').addEventListener('click', () => {
+            if (!isReady) return;
+            if (isPlaying) {
+                player.pauseVideo();
+            } else {
+                player.playVideo();
+            }
+        });
 
-        setInterval(function() {
-            currentWebpIndex = (currentWebpIndex + 1) % webpFiles.length;
-            bgWebpImage.style.opacity = 0;
-            setTimeout(function() {
-                bgWebpImage.src = webpFiles[currentWebpIndex];
-                bgWebpImage.style.opacity = 1;
-            }, 1000); 
-        }, THIRTY_MINUTES);
+        // Previous Track
+        document.getElementById('btn-prev').addEventListener('click', () => {
+            if (isReady) player.previousVideo();
+        });
+
+        // Next Track
+        document.getElementById('btn-next').addEventListener('click', () => {
+            if (isReady) player.nextVideo();
+        });
     </script>
 </body>
 </html>
