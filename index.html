@@ -5,7 +5,6 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Lofi Streamer</title>
     <style>
-        /* Base Setup */
         body, html {
             margin: 0; padding: 0; height: 100%; overflow: hidden;
             background-color: #1a1a2e;
@@ -18,14 +17,12 @@
             transition: opacity 1s ease-in-out;
         }
 
-        /* Live Clock (Top Left Corner) */
         .live-clock {
             position: absolute; top: 30px; left: 40px;
             color: rgba(255, 255, 255, 0.9); font-size: 22px; font-weight: 500;
             letter-spacing: 1px; z-index: 1; text-shadow: 0 2px 10px rgba(0,0,0,0.6);
         }
 
-        /* The Pill-Shaped Bottom Bar */
         .player-bar {
             position: absolute; bottom: 30px; left: 50%; transform: translateX(-50%);
             width: 800px; max-width: 90%; height: 75px;
@@ -51,7 +48,7 @@
 
         .track-title {
             font-size: 15px; font-weight: 600; margin: 0 0 2px 0; letter-spacing: 0.5px;
-            white-space: nowrap; overflow: hidden; text-overflow: ellipsis; /* Keeps long titles tidy */
+            white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
         }
 
         .track-artist { font-size: 11px; color: #b3b3b3; margin: 0 0 6px 0; }
@@ -83,15 +80,16 @@
 
     <div class="live-clock" id="live-clock">00:00 AM</div>
 
+    <!-- Background Video with explicit forced play properties -->
     <video autoplay loop muted playsinline id="bg-video">
         <source src="video1.mp4" type="video/mp4">
+        Your browser does not support the video tag.
     </video>
 
     <div class="player-bar">
         <div class="track-info">
             <div class="album-art" id="art"></div>
             <div class="track-details">
-                <!-- Song title updates live here -->
                 <div class="track-title" id="song-title">Click Play to Start</div>
                 <div class="track-artist">YouTube Playlist</div>
                 <div class="progress-container">
@@ -116,6 +114,13 @@
     </div>
 
     <script>
+        // Force video to play immediately on load script
+        window.addEventListener('DOMContentLoaded', () => {
+            const vid = document.getElementById('bg-video');
+            vid.muted = true;
+            vid.play().catch(err => console.log("Autoplay blocked:", err));
+        });
+
         // Clock Script
         function updateClock() {
             const now = new Date();
@@ -160,7 +165,6 @@
             return minutes + ":" + (seconds < 10 ? "0" : "") + seconds;
         }
 
-        // Updates progress bar and pulls the active song title from YouTube
         function updatePlayerInfo() {
             if (player && player.getCurrentTime) {
                 const current = player.getCurrentTime();
@@ -174,7 +178,6 @@
                     document.getElementById('progress-fill').style.width = percentage + "%";
                 }
 
-                // Grabs the real-time song title directly from YouTube video data
                 if (typeof player.getVideoData === 'function') {
                     const videoData = player.getVideoData();
                     if (videoData && videoData.title) {
