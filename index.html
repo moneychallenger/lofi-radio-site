@@ -48,8 +48,6 @@
             top: 50%;
             left: 50%;
             transform: translate(-50%, -50%);
-            width: 12px;
-            height: 12px;
             background-color: rgba(20, 20, 20, 0.8);
             border-radius: 50%;
             border: 1px solid rgba(255, 255, 255, 0.1);
@@ -74,65 +72,65 @@
 
     <!-- Splash Screen: Required to bypass browser autoplay policies gracefully -->
     <div id="splash" class="fixed inset-0 z-50 flex flex-col items-center justify-center bg-black/80 backdrop-blur-md transition-opacity duration-700">
-        <h1 class="text-4xl font-semibold tracking-wide mb-8">Lofi Radio</h1>
-        <button id="splash-btn" disabled class="px-8 py-3 bg-white text-black font-medium rounded-full shadow-lg hover:scale-105 transition-all opacity-50 cursor-not-allowed">
+        <h1 class="text-3xl sm:text-4xl font-semibold tracking-wide mb-8 text-center px-4">Lofi Radio</h1>
+        <button id="splash-btn" disabled class="px-6 py-2 sm:px-8 sm:py-3 bg-white text-black font-medium rounded-full shadow-lg hover:scale-105 transition-all opacity-50 cursor-not-allowed">
             Loading Player...
         </button>
     </div>
 
     <!-- Background Images Container -->
-    <!-- Image 1 (Visible by default) -->
-    <img id="bg1" class="bg-img opacity-100" src="Gemini_Generated_Image_fepy1cfepy1cfepy.png" alt="Lofi Background 1" onerror="this.src='https://images.unsplash.com/photo-1519681393784-d120267933ba?auto=format&fit=crop&w=1920&q=80'">
-    <!-- Image 2 (Hidden by default) -->
-    <img id="bg2" class="bg-img opacity-0" src="make_this_image_into_a_animati (1) (1).webp" alt="Lofi Background 2" onerror="this.src='https://images.unsplash.com/photo-1507525428034-b723cf961d3e?auto=format&fit=crop&w=1920&q=80'">
+    <!-- Image 1 (Visible by default - WebP Animation) -->
+    <img id="bg1" class="bg-img opacity-100" src="make_this_image_into_a_animati (1) (1).webp" alt="Lofi Background 1" onerror="this.src='https://images.unsplash.com/photo-1519681393784-d120267933ba?auto=format&fit=crop&w=1920&q=80'">
+    <!-- Image 2 (Hidden by default - PNG Image) -->
+    <img id="bg2" class="bg-img opacity-0" src="Gemini_Generated_Image_fepy1cfepy1cfepy.png" alt="Lofi Background 2" onerror="this.src='https://images.unsplash.com/photo-1507525428034-b723cf961d3e?auto=format&fit=crop&w=1920&q=80'">
 
     <!-- Top-Left Corner: Live Clock -->
-    <div class="fixed top-8 left-8 z-10 select-none">
+    <div class="fixed top-4 left-4 sm:top-8 sm:left-8 z-10 select-none">
         <div class="flex items-baseline gap-1 text-shadow">
-            <span id="clock-time" class="text-5xl font-light tracking-tight">--:--</span>
-            <span id="clock-ampm" class="text-xl font-medium text-white/80"></span>
+            <span id="clock-time" class="text-3xl sm:text-5xl font-light tracking-tight">--:--</span>
+            <span id="clock-ampm" class="text-base sm:text-xl font-medium text-white/80"></span>
         </div>
     </div>
 
     <!-- Bottom Center: Frosted Glass Pill Bar -->
-    <div class="fixed bottom-8 left-1/2 -translate-x-1/2 w-[92%] max-w-2xl glass-pill rounded-[2.5rem] px-5 py-4 flex items-center justify-between z-40">
+    <div class="fixed bottom-4 sm:bottom-8 left-1/2 -translate-x-1/2 w-[95%] sm:w-[92%] max-w-2xl glass-pill rounded-[2rem] sm:rounded-[2.5rem] px-3 py-2 sm:px-5 sm:py-4 flex items-center justify-between z-40">
         
         <!-- Left Side: Track Info & Album Art -->
-        <div class="flex items-center gap-4 flex-1 overflow-hidden pr-4">
+        <div class="flex items-center gap-2 sm:gap-4 flex-1 overflow-hidden pr-2 sm:pr-4">
             
             <!-- Spinning Album Art Thumbnail -->
-            <div class="relative w-16 h-16 rounded-full overflow-hidden shrink-0 border border-white/20 shadow-md">
+            <div class="relative w-11 h-11 sm:w-16 sm:h-16 rounded-full overflow-hidden shrink-0 border border-white/20 shadow-md">
                 <img id="album-art" src="https://placehold.co/150x150/1a1a1a/ffffff?text=Lofi" alt="Album Art" class="w-full h-full object-cover transition-transform duration-500">
-                <div class="vinyl-center"></div>
+                <div class="vinyl-center w-2 h-2 sm:w-3 sm:h-3"></div>
             </div>
 
             <!-- Title, Subtitle, and Progress Bar -->
             <div class="flex flex-col justify-center flex-1 min-w-0">
-                <div id="track-title" class="truncate text-base font-semibold tracking-wide">Connecting to stream...</div>
-                <div id="track-artist" class="truncate text-sm text-gray-300 mb-2">Fetching playlist info</div>
+                <div id="track-title" class="truncate text-xs sm:text-base font-semibold tracking-wide">Connecting to stream...</div>
+                <div id="track-artist" class="truncate text-[10px] sm:text-sm text-gray-300 mb-1.5 sm:mb-2">Fetching playlist info</div>
                 
                 <!-- Horizontal Progress Bar -->
-                <div class="w-full h-1.5 bg-white/20 rounded-full overflow-hidden flex items-center">
+                <div class="w-full h-1 sm:h-1.5 bg-white/20 rounded-full overflow-hidden flex items-center">
                     <div id="progress-fill" class="h-full bg-white w-0 transition-all duration-300 ease-linear rounded-full"></div>
                 </div>
             </div>
         </div>
 
         <!-- Right Side: Minimalist Controls -->
-        <div class="flex items-center gap-5 shrink-0 pl-2">
+        <div class="flex items-center gap-3 sm:gap-5 shrink-0 pl-1 sm:pl-2">
             <!-- Previous Button -->
             <button id="btn-prev" class="text-white/70 hover:text-white hover:scale-110 transition-all focus:outline-none">
-                <i class="ph ph-skip-back-circle text-4xl"></i>
+                <i class="ph ph-skip-back-circle text-2xl sm:text-4xl"></i>
             </button>
             
             <!-- Play/Pause Button (Solid white circle) -->
-            <button id="btn-playpause" class="w-14 h-14 bg-white text-black rounded-full flex items-center justify-center hover:scale-105 hover:bg-gray-100 transition-all shadow-lg focus:outline-none">
-                <i id="icon-playpause" class="ph-fill ph-play text-2xl ml-1"></i> <!-- ml-1 to visually center the play triangle -->
+            <button id="btn-playpause" class="w-10 h-10 sm:w-14 sm:h-14 bg-white text-black rounded-full flex items-center justify-center hover:scale-105 hover:bg-gray-100 transition-all shadow-lg focus:outline-none">
+                <i id="icon-playpause" class="ph-fill ph-play text-lg sm:text-2xl ml-0.5 sm:ml-1"></i> <!-- ml offsets visually center the play triangle -->
             </button>
             
             <!-- Next Button -->
             <button id="btn-next" class="text-white/70 hover:text-white hover:scale-110 transition-all focus:outline-none">
-                <i class="ph ph-skip-forward-circle text-4xl"></i>
+                <i class="ph ph-skip-forward-circle text-2xl sm:text-4xl"></i>
             </button>
         </div>
     </div>
@@ -226,9 +224,8 @@
                 isPlaying = true;
                 
                 // Update icons and animations
-                playIcon.classList.remove('ph-play');
+                playIcon.classList.remove('ph-play', 'ml-0.5', 'sm:ml-1');
                 playIcon.classList.add('ph-pause');
-                playIcon.classList.remove('ml-1'); // Remove centering offset for pause icon
                 albumArt.classList.add('spin-slow');
                 
                 updateTrackMetadata();
@@ -238,8 +235,7 @@
                 
                 // Pause icons and animations
                 playIcon.classList.remove('ph-pause');
-                playIcon.classList.add('ph-play');
-                playIcon.classList.add('ml-1'); 
+                playIcon.classList.add('ph-play', 'ml-0.5', 'sm:ml-1'); 
                 albumArt.classList.remove('spin-slow');
                 
                 stopProgressTracker();
