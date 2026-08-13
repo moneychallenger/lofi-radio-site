@@ -13,7 +13,7 @@
         /* Base Styles */
         body { margin: 0; overflow: hidden; font-family: 'Inter', sans-serif; background-color: #000; }
         
-        /* Background Crossfade Animation */
+        /* Background Video Styling */
         .bg-asset {
             position: fixed;
             right: 0;
@@ -22,11 +22,17 @@
             min-height: 100%;
             z-index: -2;
             object-fit: cover;
-            opacity: 0;
-            transition: opacity 2s ease-in-out; /* Smooth 2-second crossfade */
         }
-        .bg-asset.active {
-            opacity: 1;
+
+        /* Screen Orientation Logic */
+        @media (orientation: landscape) {
+            #bg-portrait { display: none; }
+            #bg-landscape { display: block; }
+        }
+        
+        @media (orientation: portrait) {
+            #bg-landscape { display: none; }
+            #bg-portrait { display: block; }
         }
 
         /* Frosted Glass UI */
@@ -68,10 +74,9 @@
         </button>
     </div>
 
-    <!-- Backgrounds (Video & Images updated to new filenames) -->
-    <video id="bg-1" src="29444-375445500.mp4" autoplay loop muted playsinline class="bg-asset active"></video>
-    <img id="bg-2" src="Gemini_Generated_Image_23zxp823zxp823zx.png" class="bg-asset">
-    <img id="bg-3" src="Gemini_Generated_Image_e70psue70psue70p.png" class="bg-asset">
+    <!-- Background Videos (Toggled via CSS based on orientation) -->
+    <video id="bg-landscape" src="landscape.mp4" autoplay loop muted playsinline class="bg-asset"></video>
+    <video id="bg-portrait" src="potrate.mp4" autoplay loop muted playsinline class="bg-asset"></video>
 
     <!-- Top Left Live Clock -->
     <div class="absolute top-6 left-6 frosted-glass px-4 py-2 rounded-xl">
@@ -122,26 +127,7 @@
     <!-- Scripts -->
     <script src="https://www.youtube.com/iframe_api"></script>
     <script>
-        // --- 1. Background Switcher (60 Seconds) ---
-        const bgs = [
-            document.getElementById('bg-1'),
-            document.getElementById('bg-2'),
-            document.getElementById('bg-3')
-        ];
-        let currentBg = 0;
-
-        setInterval(() => {
-            bgs[currentBg].classList.remove('active');
-            currentBg = (currentBg + 1) % bgs.length;
-            bgs[currentBg].classList.add('active');
-            
-            // If the active background is the video, ensure it stays playing
-            if(bgs[currentBg].tagName === 'VIDEO') {
-                bgs[currentBg].play();
-            }
-        }, 60000); // 60,000 milliseconds = 60 seconds
-
-        // --- 2. Live Clock ---
+        // --- 1. Live Clock ---
         function updateClock() {
             const now = new Date();
             let hours = now.getHours();
@@ -155,7 +141,7 @@
         setInterval(updateClock, 1000);
         updateClock();
 
-        // --- 3. YouTube Audio Player Logic ---
+        // --- 2. YouTube Audio Player Logic ---
         let player;
         let isPlaying = false;
         let progressInterval;
@@ -186,7 +172,7 @@
                 setTimeout(() => { document.getElementById('splash').style.display = 'none'; }, 500);
                 
                 player.setVolume(70);
-                player.setShuffle(true); // <--- This command shuffles your playlist!
+                player.setShuffle(true); // Shuffles the playlist
                 player.playVideo();
             });
             
@@ -210,11 +196,11 @@
                 // Update icons and animations
                 playIcon.classList.remove('fa-play');
                 playIcon.classList.add('fa-pause');
-                playIcon.classList.remove('ml-1'); // fix center alignment for pause icon
+                playIcon.classList.remove('ml-1'); 
                 thumb.classList.remove('spin-paused');
                 thumb.classList.add('spin-slow');
                 
-                // Pull live YouTube metadata (Title, Channel, Thumbnail)
+                // Pull live YouTube metadata
                 let data = player.getVideoData();
                 document.getElementById('song-title').innerText = data.title;
                 document.getElementById('song-artist').innerText = data.author;
