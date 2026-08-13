@@ -5,21 +5,34 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Lofi Streamer</title>
     <style>
-        /* 1. Base Setup */
+        /* Base Setup */
         body, html {
             margin: 0; padding: 0; height: 100%; overflow: hidden;
             background-color: #1a1a2e; /* Fallback color */
             font-family: "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
         }
 
-        /* 2. The Background Video */
+        /* The Background Video */
         #bg-video {
             position: fixed; right: 0; bottom: 0; min-width: 100%; min-height: 100%;
             z-index: -2; object-fit: cover;
             transition: opacity 1s ease-in-out;
         }
 
-        /* 3. The Pill-Shaped Bottom Bar (From your screenshot) */
+        /* Live Clock (Top Left Corner) */
+        .live-clock {
+            position: absolute;
+            top: 30px;
+            left: 40px;
+            color: rgba(255, 255, 255, 0.9);
+            font-size: 22px;
+            font-weight: 500;
+            letter-spacing: 1px;
+            z-index: 1;
+            text-shadow: 0 2px 10px rgba(0,0,0,0.6);
+        }
+
+        /* The Pill-Shaped Bottom Bar */
         .player-bar {
             position: absolute;
             bottom: 30px;
@@ -32,7 +45,7 @@
             backdrop-filter: blur(15px);
             -webkit-backdrop-filter: blur(15px);
             border: 1px solid rgba(255, 255, 255, 0.1);
-            border-radius: 40px; /* Gives it the round pill shape */
+            border-radius: 40px; 
             display: flex;
             align-items: center;
             justify-content: space-between;
@@ -43,7 +56,7 @@
             box-shadow: 0 10px 30px rgba(0,0,0,0.5);
         }
 
-        /* 4. Left Side: Track Info */
+        /* Left Side: Track Info */
         .track-info {
             display: flex;
             align-items: center;
@@ -51,21 +64,17 @@
             width: 65%;
         }
 
-        /* The Round Album Art inside the bar */
         .album-art {
             width: 45px;
             height: 45px;
             border-radius: 50%;
-            /* Uses a generic dark neon placeholder image to match the vibe */
             background-image: url('https://images.unsplash.com/photo-1614165936126-22485bb5a52b?q=80&w=200&auto=format&fit=crop'); 
             background-size: cover;
             background-position: center;
             animation: spin 8s linear infinite;
-            animation-play-state: paused; /* Starts paused */
+            animation-play-state: paused; 
         }
-        .album-art.playing {
-            animation-play-state: running;
-        }
+        .album-art.playing { animation-play-state: running; }
 
         @keyframes spin { 100% { transform: rotate(360deg); } }
 
@@ -96,75 +105,45 @@
             gap: 10px;
         }
 
-        .time-text {
-            font-size: 10px;
-            color: #b3b3b3;
-            min-width: 25px;
-        }
+        .time-text { font-size: 10px; color: #b3b3b3; min-width: 25px; }
 
         .progress-bar-bg {
-            flex-grow: 1;
-            height: 3px;
-            background: rgba(255, 255, 255, 0.2);
-            border-radius: 2px;
-            position: relative;
+            flex-grow: 1; height: 3px; background: rgba(255, 255, 255, 0.2);
+            border-radius: 2px; position: relative;
         }
         
         .progress-bar-fill {
-            position: absolute;
-            left: 0; top: 0; height: 100%;
-            background: #fff;
-            width: 0%; /* JavaScript moves this */
-            border-radius: 2px;
+            position: absolute; left: 0; top: 0; height: 100%;
+            background: #fff; width: 0%; border-radius: 2px;
             transition: width 1s linear;
         }
 
-        /* 5. Right Side: Controls */
-        .controls {
-            display: flex;
-            align-items: center;
-            gap: 15px;
-        }
+        /* Right Side: Controls */
+        .controls { display: flex; align-items: center; gap: 15px; }
 
         .ctrl-btn {
-            background: none;
-            border: none;
-            color: #fff;
-            cursor: pointer;
-            font-size: 14px;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            opacity: 0.7;
-            transition: opacity 0.2s, transform 0.1s;
-            padding: 0;
+            background: none; border: none; color: #fff; cursor: pointer;
+            font-size: 14px; display: flex; justify-content: center; align-items: center;
+            opacity: 0.7; transition: opacity 0.2s, transform 0.1s; padding: 0;
         }
         
         .ctrl-btn:hover { opacity: 1; }
         .ctrl-btn:active { transform: scale(0.9); }
 
-        /* The specific white circle Play/Pause button from your screenshot */
         .play-pause-btn {
-            width: 36px;
-            height: 36px;
-            background: #fff;
-            color: #000;
-            border-radius: 50%;
-            font-size: 16px;
-            opacity: 1;
-            padding-left: 2px; /* Centers the play triangle visually */
+            width: 36px; height: 36px; background: #fff; color: #000;
+            border-radius: 50%; font-size: 16px; opacity: 1; padding-left: 2px; 
         }
-        .play-pause-btn.is-playing {
-            padding-left: 0; /* Centers the pause icon */
-        }
+        .play-pause-btn.is-playing { padding-left: 0; }
 
         /* Hidden YouTube Player */
-        #youtube-player-container {
-            position: absolute; top: -9999px; left: -9999px; visibility: hidden;
-        }
+        #youtube-player-container { position: absolute; top: -9999px; left: -9999px; visibility: hidden; }
     </style>
 </head>
 <body>
+
+    <!-- Live Clock Element -->
+    <div class="live-clock" id="live-clock">00:00 AM</div>
 
     <!-- Background Video Layer -->
     <video autoplay loop muted playsinline id="bg-video">
@@ -173,14 +152,12 @@
 
     <!-- The Pill Bar -->
     <div class="player-bar">
-        
         <!-- Left Side -->
         <div class="track-info">
             <div class="album-art" id="art"></div>
             <div class="track-details">
                 <div class="track-title" id="song-title">Lofi Station Stream</div>
                 <div class="track-artist">YouTube Playlist</div>
-                
                 <div class="progress-container">
                     <span class="time-text" id="current-time">0:00</span>
                     <div class="progress-bar-bg">
@@ -197,7 +174,6 @@
             <button class="ctrl-btn play-pause-btn" id="play-btn" onclick="togglePlay()">▶</button>
             <button class="ctrl-btn" onclick="nextTrack()">⏭</button>
         </div>
-
     </div>
 
     <!-- Hidden YouTube API -->
@@ -206,6 +182,24 @@
     </div>
 
     <script>
+        // --- Live Clock Logic ---
+        function updateClock() {
+            const now = new Date();
+            let hours = now.getHours();
+            let minutes = now.getMinutes();
+            const ampm = hours >= 12 ? 'PM' : 'AM';
+            
+            hours = hours % 12;
+            hours = hours ? hours : 12; // the hour '0' should be '12'
+            minutes = minutes < 10 ? '0' + minutes : minutes;
+            
+            const timeString = hours + ':' + minutes + ' ' + ampm;
+            document.getElementById('live-clock').innerText = timeString;
+        }
+        setInterval(updateClock, 1000);
+        updateClock(); // Run immediately on load
+
+        // --- YouTube API Logic ---
         var tag = document.createElement('script');
         tag.src = "https://www.youtube.com/iframe_api";
         var firstScriptTag = document.getElementsByTagName('script')[0];
@@ -229,7 +223,6 @@
             });
         }
 
-        // Formats seconds into M:SS
         function formatTime(time) {
             if (isNaN(time)) return "0:00";
             const minutes = Math.floor(time / 60);
@@ -237,7 +230,6 @@
             return minutes + ":" + (seconds < 10 ? "0" : "") + seconds;
         }
 
-        // Updates the progress bar line every second
         function updateProgressBar() {
             if (player && player.getCurrentTime) {
                 const current = player.getCurrentTime();
@@ -253,17 +245,14 @@
             }
         }
 
-        // Listens to YouTube to know when a song actually ends or skips
         function onPlayerStateChange(event) {
             if (event.data == YT.PlayerState.PLAYING) {
                 isPlaying = true;
                 updateUIForPlay();
-                // Start moving the progress bar
                 progressInterval = setInterval(updateProgressBar, 1000);
             } else {
                 isPlaying = false;
                 updateUIForPause();
-                // Stop moving the bar
                 clearInterval(progressInterval);
             }
         }
@@ -271,7 +260,7 @@
         function updateUIForPlay() {
             const cd = document.getElementById('art');
             const playBtn = document.getElementById('play-btn');
-            playBtn.innerHTML = "⏸"; // Pause Icon
+            playBtn.innerHTML = "⏸"; 
             playBtn.classList.add('is-playing');
             cd.classList.add('playing');
         }
@@ -279,7 +268,7 @@
         function updateUIForPause() {
             const cd = document.getElementById('art');
             const playBtn = document.getElementById('play-btn');
-            playBtn.innerHTML = "▶"; // Play Icon
+            playBtn.innerHTML = "▶"; 
             playBtn.classList.remove('is-playing');
             cd.classList.remove('playing');
         }
@@ -302,7 +291,7 @@
             if (player && typeof player.previousVideo === 'function') { player.previousVideo(); }
         }
 
-        // 30 Minute Background Video Switcher
+        // --- 30 Minute Background Video Switcher ---
         const bgVideoElement = document.getElementById('bg-video');
         const playlistVideos = ['video1.mp4', 'video2.mp4'];
         let currentVideoIndex = 0;
