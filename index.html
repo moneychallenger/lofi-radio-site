@@ -11,11 +11,29 @@
             font-family: "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
         }
 
-        #bg-video {
+        /* Background WebP Image/Animation Layer */
+        #bg-webp {
             position: fixed; right: 0; bottom: 0; min-width: 100%; min-height: 100%;
             z-index: -2; object-fit: cover;
             transition: opacity 1s ease-in-out;
         }
+
+        #splash-screen {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(10, 10, 15, 0.85);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            display: flex; flex-direction: column; justify-content: center; align-items: center;
+            z-index: 10; transition: opacity 0.5s ease;
+        }
+
+        .enter-btn {
+            background: #fff; color: #000; border: none; padding: 15px 40px;
+            font-size: 16px; font-weight: 600; border-radius: 30px; cursor: pointer;
+            box-shadow: 0 10px 30px rgba(255,255,255,0.2); transition: transform 0.2s, background 0.2s;
+            letter-spacing: 1px; text-transform: uppercase;
+        }
+        .enter-btn:hover { background: #e0e0e0; transform: scale(1.05); }
 
         .live-clock {
             position: absolute; top: 30px; left: 40px;
@@ -78,19 +96,20 @@
 </head>
 <body>
 
+    <div id="splash-screen">
+        <button class="enter-btn" onclick="startExperience()">Enter Station</button>
+    </div>
+
     <div class="live-clock" id="live-clock">00:00 AM</div>
 
-    <!-- Background Video using your exact filenames -->
-    <video autoplay loop muted playsinline id="bg-video">
-        <source src="make_this_image_into_a_animati.webp" type="video/webm">
-        Your browser does not support the video tag.
-    </video>
+    <!-- WebP Background Image Container -->
+    <img id="bg-webp" src="make_this_image_into_a_animati.webp" alt="Background Animation">
 
     <div class="player-bar">
         <div class="track-info">
             <div class="album-art" id="art"></div>
             <div class="track-details">
-                <div class="track-title" id="song-title">Click Play to Start</div>
+                <div class="track-title" id="song-title">Click Enter to Start</div>
                 <div class="track-artist">YouTube Playlist</div>
                 <div class="progress-container">
                     <span class="time-text" id="current-time">0:00</span>
@@ -114,12 +133,17 @@
     </div>
 
     <script>
-        window.addEventListener('DOMContentLoaded', () => {
-            const vid = document.getElementById('bg-video');
-            vid.muted = true;
-            vid.play().catch(err => console.log("Autoplay blocked:", err));
-        });
+        function startExperience() {
+            const splash = document.getElementById('splash-screen');
+            splash.style.opacity = '0';
+            setTimeout(() => { splash.style.display = 'none'; }, 500);
 
+            if (player && typeof player.playVideo === 'function') {
+                player.playVideo();
+            }
+        }
+
+        // Clock Script
         function updateClock() {
             const now = new Date();
             let hours = now.getHours();
@@ -132,6 +156,7 @@
         setInterval(updateClock, 1000);
         updateClock();
 
+        // YouTube API Script
         var tag = document.createElement('script');
         tag.src = "https://www.youtube.com/iframe_api";
         var firstScriptTag = document.getElementsByTagName('script')[0];
@@ -222,23 +247,21 @@
         function nextTrack() { if (player && typeof player.nextVideo === 'function') { player.nextVideo(); } }
         function prevTrack() { if (player && typeof player.previousVideo === 'function') { player.previousVideo(); } }
 
-        // 30-minute rotation switching between your two uploaded files
-        const bgVideoElement = document.getElementById('bg-video');
-        const playlistVideos = [
+        // 30-Minute WebP Switcher
+        const bgWebpImage = document.getElementById('bg-webp');
+        const webpFiles = [
             'make_this_image_into_a_animati.webp', 
             'make_this_image_into_a_animati (1) (1).webp'
         ];
-        let currentVideoIndex = 0;
+        let currentWebpIndex = 0;
         const THIRTY_MINUTES = 30 * 60 * 1000; 
 
         setInterval(function() {
-            currentVideoIndex = (currentVideoIndex + 1) % playlistVideos.length;
-            bgVideoElement.style.opacity = 0;
+            currentWebpIndex = (currentWebpIndex + 1) % webpFiles.length;
+            bgWebpImage.style.opacity = 0;
             setTimeout(function() {
-                bgVideoElement.src = playlistVideos[currentVideoIndex];
-                bgVideoElement.load();
-                bgVideoElement.play();
-                bgVideoElement.style.opacity = 1;
+                bgWebpImage.src = webpFiles[currentWebpIndex];
+                bgWebpImage.style.opacity = 1;
             }, 1000); 
         }, THIRTY_MINUTES);
     </script>
