@@ -5,29 +5,130 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Lofi Streamer</title>
     <style>
+        /* 1. Base Setup & Fallback Background */
         body, html {
             margin: 0; padding: 0; height: 100%; overflow: hidden;
-            background-color: #000;
-            font-family: 'Courier New', Courier, monospace; color: #fff;
-            text-shadow: 0 2px 4px rgba(0,0,0,0.5);
+            background-color: #1a1a2e; /* A nice dark blue fallback if video fails */
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+            display: flex; justify-content: center; align-items: center;
         }
+
+        /* 2. The Background Video */
         #bg-video {
             position: fixed; right: 0; bottom: 0; min-width: 100%; min-height: 100%;
             z-index: -2; object-fit: cover;
             transition: opacity 1s ease-in-out;
+            opacity: 0.6; /* Dims the video slightly so the UI pops */
         }
-        .overlay {
-            position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%);
-            text-align: center; z-index: 1;
+
+        /* 3. The Glassmorphism Bezel (Sleek Container) */
+        .player-bezel {
+            background: rgba(20, 20, 20, 0.6);
+            backdrop-filter: blur(15px); /* Creates the frosted glass look */
+            -webkit-backdrop-filter: blur(15px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 30px;
+            padding: 40px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            box-shadow: 0 20px 50px rgba(0,0,0,0.5);
+            z-index: 1;
         }
-        button {
-            background-color: transparent; border: 2px solid #fff; color: #fff;
-            padding: 12px 24px; font-size: 1.1em; cursor: pointer; border-radius: 30px;
-            text-transform: uppercase; margin: 10px; transition: all 0.2s ease;
+
+        /* 4. The Spinning CD/Vinyl Record */
+        .cd-container {
+            margin-bottom: 30px;
         }
-        button:hover { background-color: rgba(255,255,255,0.2); }
         
-        /* The invisible box for the YouTube player */
+        .cd {
+            width: 180px; height: 180px;
+            border-radius: 50%;
+            /* Creates the vinyl groove texture */
+            background: repeating-radial-gradient( #222, #222 4px, #111 5px, #111 8px );
+            box-shadow: 0 10px 20px rgba(0,0,0,0.6), inset 0 0 10px rgba(255,255,255,0.1);
+            position: relative;
+            animation: spin 3s linear infinite;
+            animation-play-state: paused; /* Starts paused */
+        }
+
+        /* The orange record label */
+        .cd::before {
+            content: ''; position: absolute;
+            top: 50%; left: 50%; transform: translate(-50%, -50%);
+            width: 60px; height: 60px;
+            background: #ff5722; 
+            border-radius: 50%;
+        }
+
+        /* The center hole */
+        .cd::after {
+            content: ''; position: absolute;
+            top: 50%; left: 50%; transform: translate(-50%, -50%);
+            width: 15px; height: 15px;
+            background: #1a1a2e; /* Matches the background */
+            border-radius: 50%;
+            border: 2px solid #000;
+        }
+
+        /* This class is added by JavaScript to make it spin */
+        .cd.playing {
+            animation-play-state: running;
+        }
+
+        @keyframes spin {
+            100% { transform: rotate(360deg); }
+        }
+
+        /* 5. Spotify-Style Controls */
+        .controls {
+            display: flex;
+            align-items: center;
+            gap: 20px;
+        }
+
+        button {
+            border: none;
+            border-radius: 50%;
+            cursor: pointer;
+            display: flex; justify-content: center; align-items: center;
+            transition: all 0.2s ease;
+        }
+
+        button:active {
+            transform: scale(0.9);
+        }
+
+        /* The Play/Pause Button */
+        #play-btn {
+            width: 70px; height: 70px;
+            background: #1db954; /* Spotify Green */
+            color: white;
+            font-size: 30px;
+            box-shadow: 0 8px 20px rgba(29, 185, 84, 0.4);
+        }
+
+        #play-btn:hover {
+            background: #1ed760;
+            transform: scale(1.05);
+        }
+
+        /* The Skip Button */
+        #skip-btn {
+            width: 50px; height: 50px;
+            background: rgba(255, 255, 255, 0.1);
+            color: white;
+            font-size: 20px;
+        }
+
+        #skip-btn:hover {
+            background: rgba(255, 255, 255, 0.2);
+        }
+
+        .status-text {
+            color: #aaa; margin-top: 20px; font-size: 0.9em; letter-spacing: 1px; text-transform: uppercase;
+        }
+
         #youtube-player-container {
             position: absolute; top: -9999px; left: -9999px; visibility: hidden;
         }
@@ -35,18 +136,27 @@
 </head>
 <body>
 
+    <!-- Background Video -->
     <video autoplay loop muted playsinline id="bg-video">
         <source src="video1.mp4" type="video/mp4">
     </video>
 
-    <div class="overlay">
-        <h1>STATION STREAM</h1>
-        <p>YouTube Playlist Radio</p>
-        <button onclick="playMusic()">Start Radio</button>
-        <button onclick="nextTrack()">Next Song</button>
+    <!-- Sleek Glass Player Interface -->
+    <div class="player-bezel">
+        <div class="cd-container">
+            <div class="cd" id="vinyl-record"></div>
+        </div>
+        
+        <div class="controls">
+            <!-- Unicode icons for Play (▶) and Skip (⏭) -->
+            <button id="play-btn" onclick="togglePlay()">▶</button>
+            <button id="skip-btn" onclick="nextTrack()">⏭</button>
+        </div>
+        
+        <div class="status-text" id="status-display">Ready to Play</div>
     </div>
 
-    <!-- THIS WAS MISSING! -->
+    <!-- Hidden YouTube Player -->
     <div id="youtube-player-container">
         <div id="youtube-player"></div>
     </div>
@@ -58,6 +168,8 @@
         firstScriptTag.parentNode.insertBefore(tag, firstScriptTag);
 
         var player;
+        var isPlaying = false; // Keeps track of music status
+
         function onYouTubeIframeAPIReady() {
             player = new YT.Player('youtube-player', {
                 height: '10', width: '10',
@@ -69,21 +181,41 @@
             });
         }
 
-        function playMusic() {
+        function togglePlay() {
+            const cd = document.getElementById('vinyl-record');
+            const playBtn = document.getElementById('play-btn');
+            const status = document.getElementById('status-display');
+
             if (player && typeof player.playVideo === 'function') {
-                player.playVideo();
-                document.querySelector('.overlay p').innerText = "STREAMING ACTIVE";
+                if (isPlaying) {
+                    // PAUSE LOGIC
+                    player.pauseVideo();
+                    isPlaying = false;
+                    playBtn.innerHTML = "▶"; // Change to play icon
+                    cd.classList.remove('playing'); // Stop CD spin
+                    status.innerText = "Paused";
+                } else {
+                    // PLAY LOGIC
+                    player.playVideo();
+                    isPlaying = true;
+                    playBtn.innerHTML = "⏸"; // Change to pause icon (two bars)
+                    cd.classList.add('playing'); // Start CD spin
+                    status.innerText = "Streaming Playlist";
+                }
             } else {
-                document.querySelector('.overlay p').innerText = "LOADING PLAYER... CLICK AGAIN";
+                status.innerText = "Loading API... Try again.";
             }
         }
         
         function nextTrack() {
             if (player && typeof player.nextVideo === 'function') {
                 player.nextVideo();
+                // If skipped while paused, force it to show playing state
+                if(!isPlaying) { togglePlay(); } 
             }
         }
 
+        // 30 Minute Video Switcher
         const bgVideoElement = document.getElementById('bg-video');
         const playlistVideos = ['video1.mp4', 'video2.mp4'];
         let currentVideoIndex = 0;
@@ -96,7 +228,7 @@
                 bgVideoElement.src = playlistVideos[currentVideoIndex];
                 bgVideoElement.load();
                 bgVideoElement.play();
-                bgVideoElement.style.opacity = 1;
+                bgVideoElement.style.opacity = 0.6;
             }, 1000); 
         }, THIRTY_MINUTES);
     </script>
