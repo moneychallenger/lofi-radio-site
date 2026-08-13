@@ -5,45 +5,40 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Lofi Streamer</title>
     <style>
-        /* CSS: The Makeup (Makes the site look good) */
         body, html {
             margin: 0; padding: 0; height: 100%; overflow: hidden;
             background-color: #000;
             font-family: 'Courier New', Courier, monospace; color: #fff;
             text-shadow: 0 2px 4px rgba(0,0,0,0.5);
         }
-
-        /* The background video holder (covers the whole screen, is silent) */
         #bg-video {
             position: fixed; right: 0; bottom: 0; min-width: 100%; min-height: 100%;
             z-index: -2; object-fit: cover;
-            transition: opacity 1s ease-in-out; /* Smooth transition when changing */
+            transition: opacity 1s ease-in-out;
         }
-
-        /* The visual controls (buttons and text) */
         .overlay {
             position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%);
             text-align: center; z-index: 1;
         }
-
         button {
             background-color: transparent; border: 2px solid #fff; color: #fff;
             padding: 12px 24px; font-size: 1.1em; cursor: pointer; border-radius: 30px;
             text-transform: uppercase; margin: 10px; transition: all 0.2s ease;
         }
-
         button:hover { background-color: rgba(255,255,255,0.2); }
+        
+        /* The invisible box for the YouTube player */
+        #youtube-player-container {
+            position: absolute; top: -9999px; left: -9999px; visibility: hidden;
+        }
     </style>
 </head>
 <body>
 
-    <!-- VISUALS: The silent background video. It starts with video1.mp4 -->
-    <!-- It is MUST BE muted, autoplay, loop, and playsinline -->
     <video autoplay loop muted playsinline id="bg-video">
-        <source src="video1.mp4" type="video/mp4" id="video-source">
+        <source src="video1.mp4" type="video/mp4">
     </video>
 
-    <!-- CONTROLS: The buttons you see on the screen -->
     <div class="overlay">
         <h1>STATION STREAM</h1>
         <p>YouTube Playlist Radio</p>
@@ -51,78 +46,59 @@
         <button onclick="nextTrack()">Next Song</button>
     </div>
 
-    <!-- JAVASCRIPT: The brain of the website -->
-    <script>
-        // --- 1. Audio Logic (The hidden YouTube Player) ---
-        // We embed YouTube so they handle all copyright risk.
+    <!-- THIS WAS MISSING! -->
+    <div id="youtube-player-container">
+        <div id="youtube-player"></div>
+    </div>
 
+    <script>
         var tag = document.createElement('script');
         tag.src = "https://www.youtube.com/iframe_api";
         var firstScriptTag = document.getElementsByTagName('script')[0];
         firstScriptTag.parentNode.insertBefore(tag, firstScriptTag);
 
         var player;
-
         function onYouTubeIframeAPIReady() {
             player = new YT.Player('youtube-player', {
-                height: '0', width: '0', // Made invisible
+                height: '10', width: '10',
                 playerVars: {
                     'listType': 'playlist',
-                    // This is YOUR playlist ID
                     'list': 'PL735nzlwLB47cmb2kjt-lJXPYU9fZS6Ru',
                     'autoplay': 0, 'controls': 0, 'loop': 1, 'modestbranding': 1
                 }
             });
         }
 
-        // --- 2. Button Control Functions ---
         function playMusic() {
             if (player && typeof player.playVideo === 'function') {
                 player.playVideo();
                 document.querySelector('.overlay p').innerText = "STREAMING ACTIVE";
+            } else {
+                document.querySelector('.overlay p').innerText = "LOADING PLAYER... CLICK AGAIN";
             }
         }
+        
         function nextTrack() {
             if (player && typeof player.nextVideo === 'function') {
                 player.nextVideo();
             }
         }
 
-        // --- 3. Visual Logic (The 30-Minute Video Switcher) ---
-        // This part automatically changes the background video.
-
         const bgVideoElement = document.getElementById('bg-video');
-        
-        // Define your two video files here (make sure filenames match!)
         const playlistVideos = ['video1.mp4', 'video2.mp4'];
-        let currentVideoIndex = 0; // Start with the first video
-
-        // Set the timer (30 minutes)
-        // 30 minutes * 60 seconds * 1000 milliseconds = 1,800,000
+        let currentVideoIndex = 0;
         const THIRTY_MINUTES = 30 * 60 * 1000; 
 
-        // Run this logic every 30 minutes
         setInterval(function() {
-            // Calculate the next video index (loops 0, 1, 0, 1...)
             currentVideoIndex = (currentVideoIndex + 1) % playlistVideos.length;
-            
-            console.log("Changing visual background to: " + playlistVideos[currentVideoIndex]);
-
-            // 1. Gently fade out the current video (optional, for smoothness)
             bgVideoElement.style.opacity = 0;
-
-            // 2. Wait 1 second (for the fade) then change the source
             setTimeout(function() {
                 bgVideoElement.src = playlistVideos[currentVideoIndex];
-                bgVideoElement.load(); // Standard step when changing video sources
-                bgVideoElement.play(); // Standard standard autoplay can fail on source change
-                
-                // 3. Fade the new video back in
+                bgVideoElement.load();
+                bgVideoElement.play();
                 bgVideoElement.style.opacity = 1;
             }, 1000); 
-
         }, THIRTY_MINUTES);
-
     </script>
 </body>
 </html>
