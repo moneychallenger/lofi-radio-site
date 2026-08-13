@@ -3,26 +3,18 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Lofi Radio Stream</title>
-    
-    <!-- Tailwind CSS for rapid styling -->
+    <title>Lofi Radio Station</title>
+    <!-- Tailwind CSS for styling -->
     <script src="https://cdn.tailwindcss.com"></script>
-    <!-- Phosphor Icons for minimalist playback controls -->
-    <script src="https://unpkg.com/@phosphor-icons/web"></script>
-    <!-- Google Fonts (Inter for clean UI) -->
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet">
+    <!-- FontAwesome for Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     
     <style>
-        body {
-            font-family: 'Inter', sans-serif;
-            margin: 0;
-            padding: 0;
-            overflow: hidden; /* Prevent scrolling */
-            background-color: #000;
-        }
-
-        /* Exact background styling requested */
-        .bg-img {
+        /* Base Styles */
+        body { margin: 0; overflow: hidden; font-family: 'Inter', sans-serif; background-color: #000; }
+        
+        /* Background Crossfade Animation */
+        .bg-asset {
             position: fixed;
             right: 0;
             bottom: 0;
@@ -30,175 +22,155 @@
             min-height: 100%;
             z-index: -2;
             object-fit: cover;
-            transition: opacity 2s ease-in-out;
+            opacity: 0;
+            transition: opacity 2s ease-in-out; /* Smooth 2-second crossfade */
+        }
+        .bg-asset.active {
+            opacity: 1;
         }
 
-        /* Glassmorphism utility for the pill bar */
-        .glass-pill {
+        /* Frosted Glass UI */
+        .frosted-glass {
             background: rgba(20, 20, 20, 0.5);
             backdrop-filter: blur(16px);
             -webkit-backdrop-filter: blur(16px);
             border: 1px solid rgba(255, 255, 255, 0.15);
-            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.4);
+            box-shadow: 0 4px 30px rgba(0, 0, 0, 0.3);
         }
 
-        /* Vinyl record center hole */
-        .vinyl-center {
-            position: absolute;
-            top: 50%;
-            left: 50%;
-            transform: translate(-50%, -50%);
-            background-color: rgba(20, 20, 20, 0.8);
-            border-radius: 50%;
-            border: 1px solid rgba(255, 255, 255, 0.1);
-        }
-
-        /* Custom slow spin animation for the active record */
+        /* Spinning Album Art */
         .spin-slow {
-            animation: spin 6s linear infinite;
+            animation: spin 4s linear infinite;
+        }
+        .spin-paused {
+            animation-play-state: paused;
         }
         @keyframes spin {
-            from { transform: rotate(0deg); }
-            to { transform: rotate(360deg); }
+            100% { transform: rotate(360deg); }
         }
 
-        /* Text shadow for better visibility on bright backgrounds */
-        .text-shadow {
-            text-shadow: 0px 2px 10px rgba(0, 0, 0, 0.6);
+        /* Splash Screen */
+        #splash {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: #000; z-index: 50; display: flex;
+            align-items: center; justify-content: center; flex-direction: column;
+            color: white; transition: opacity 0.5s;
         }
     </style>
 </head>
-<body class="text-white selection:bg-white/30 antialiased">
+<body class="text-white">
 
-    <!-- Splash Screen: Required to bypass browser autoplay policies gracefully -->
-    <div id="splash" class="fixed inset-0 z-50 flex flex-col items-center justify-center bg-black/80 backdrop-blur-md transition-opacity duration-700">
-        <h1 class="text-3xl sm:text-4xl font-semibold tracking-wide mb-8 text-center px-4">Lofi Radio</h1>
-        <button id="splash-btn" disabled class="px-6 py-2 sm:px-8 sm:py-3 bg-white text-black font-medium rounded-full shadow-lg hover:scale-105 transition-all opacity-50 cursor-not-allowed">
-            Loading Player...
+    <!-- Splash Screen (Required for browser autoplay policies) -->
+    <div id="splash">
+        <h1 class="text-3xl font-bold mb-6 tracking-wider">LOFI STATION</h1>
+        <button id="enter-btn" class="px-8 py-3 bg-white text-black font-semibold rounded-full hover:bg-gray-200 transition">
+            Enter Station
         </button>
     </div>
 
-    <!-- Background Images Container -->
-    <!-- Image 1 (Visible by default - WebP Animation) -->
-    <img id="bg1" class="bg-img opacity-100" src="make_this_image_into_a_animati (1) (1).webp" alt="Lofi Background 1" onerror="this.src='https://images.unsplash.com/photo-1519681393784-d120267933ba?auto=format&fit=crop&w=1920&q=80'">
-    <!-- Image 2 (Hidden by default - PNG Image) -->
-    <img id="bg2" class="bg-img opacity-0" src="Gemini_Generated_Image_fepy1cfepy1cfepy.png" alt="Lofi Background 2" onerror="this.src='https://images.unsplash.com/photo-1507525428034-b723cf961d3e?auto=format&fit=crop&w=1920&q=80'">
+    <!-- Backgrounds (Video & Images updated to new filenames) -->
+    <video id="bg-1" src="29444-375445500.mp4" autoplay loop muted playsinline class="bg-asset active"></video>
+    <img id="bg-2" src="Gemini_Generated_Image_23zxp823zxp823zx.png" class="bg-asset">
+    <img id="bg-3" src="Gemini_Generated_Image_e70psue70psue70p.png" class="bg-asset">
 
-    <!-- Top-Left Corner: Live Clock -->
-    <div class="fixed top-4 left-4 sm:top-8 sm:left-8 z-10 select-none">
-        <div class="flex items-baseline gap-1 text-shadow">
-            <span id="clock-time" class="text-3xl sm:text-5xl font-light tracking-tight">--:--</span>
-            <span id="clock-ampm" class="text-base sm:text-xl font-medium text-white/80"></span>
-        </div>
+    <!-- Top Left Live Clock -->
+    <div class="absolute top-6 left-6 frosted-glass px-4 py-2 rounded-xl">
+        <span id="clock" class="text-lg sm:text-2xl font-semibold tracking-wide drop-shadow-md">00:00 AM</span>
     </div>
 
-    <!-- Bottom Center: Frosted Glass Pill Bar -->
-    <div class="fixed bottom-4 sm:bottom-8 left-1/2 -translate-x-1/2 w-[95%] sm:w-[92%] max-w-2xl glass-pill rounded-[2rem] sm:rounded-[2.5rem] px-3 py-2 sm:px-5 sm:py-4 flex items-center justify-between z-40">
-        
-        <!-- Left Side: Track Info & Album Art -->
-        <div class="flex items-center gap-2 sm:gap-4 flex-1 overflow-hidden pr-2 sm:pr-4">
-            
-            <!-- Spinning Album Art Thumbnail -->
-            <div class="relative w-11 h-11 sm:w-16 sm:h-16 rounded-full overflow-hidden shrink-0 border border-white/20 shadow-md">
-                <img id="album-art" src="https://placehold.co/150x150/1a1a1a/ffffff?text=Lofi" alt="Album Art" class="w-full h-full object-cover transition-transform duration-500">
-                <div class="vinyl-center w-2 h-2 sm:w-3 sm:h-3"></div>
-            </div>
+    <!-- Hidden YouTube Player -->
+    <div id="yt-player" class="hidden"></div>
 
-            <!-- Title, Subtitle, and Progress Bar -->
-            <div class="flex flex-col justify-center flex-1 min-w-0">
-                <div id="track-title" class="truncate text-xs sm:text-base font-semibold tracking-wide">Connecting to stream...</div>
-                <div id="track-artist" class="truncate text-[10px] sm:text-sm text-gray-300 mb-1.5 sm:mb-2">Fetching playlist info</div>
+    <!-- Bottom Center Pill Bar -->
+    <div class="absolute bottom-6 w-full flex justify-center px-4">
+        <div class="frosted-glass w-full max-w-2xl rounded-full flex items-center justify-between p-3 sm:p-4">
+            
+            <!-- Left Side: Art & Metadata -->
+            <div class="flex items-center space-x-3 sm:space-x-4 overflow-hidden w-2/3">
+                <!-- Album Art Thumbnail -->
+                <img id="album-art" src="https://via.placeholder.com/150" alt="Album Art" class="w-10 h-10 sm:w-14 sm:h-14 rounded-full object-cover spin-paused">
                 
-                <!-- Horizontal Progress Bar -->
-                <div class="w-full h-1 sm:h-1.5 bg-white/20 rounded-full overflow-hidden flex items-center">
-                    <div id="progress-fill" class="h-full bg-white w-0 transition-all duration-300 ease-linear rounded-full"></div>
+                <div class="flex flex-col w-full">
+                    <!-- Dynamic Text -->
+                    <span id="song-title" class="text-sm sm:text-base font-bold truncate">Loading Stream...</span>
+                    <span id="song-artist" class="text-xs sm:text-sm text-gray-300 truncate">Connecting to YouTube</span>
+                    
+                    <!-- Progress Bar -->
+                    <div class="w-full h-1 bg-gray-600 rounded-full mt-1.5 overflow-hidden">
+                        <div id="progress-fill" class="h-full bg-white w-0 transition-all duration-1000 ease-linear"></div>
+                    </div>
                 </div>
             </div>
-        </div>
 
-        <!-- Right Side: Minimalist Controls -->
-        <div class="flex items-center gap-3 sm:gap-5 shrink-0 pl-1 sm:pl-2">
-            <!-- Previous Button -->
-            <button id="btn-prev" class="text-white/70 hover:text-white hover:scale-110 transition-all focus:outline-none">
-                <i class="ph ph-skip-back-circle text-2xl sm:text-4xl"></i>
-            </button>
-            
-            <!-- Play/Pause Button (Solid white circle) -->
-            <button id="btn-playpause" class="w-10 h-10 sm:w-14 sm:h-14 bg-white text-black rounded-full flex items-center justify-center hover:scale-105 hover:bg-gray-100 transition-all shadow-lg focus:outline-none">
-                <i id="icon-playpause" class="ph-fill ph-play text-lg sm:text-2xl ml-0.5 sm:ml-1"></i> <!-- ml offsets visually center the play triangle -->
-            </button>
-            
-            <!-- Next Button -->
-            <button id="btn-next" class="text-white/70 hover:text-white hover:scale-110 transition-all focus:outline-none">
-                <i class="ph ph-skip-forward-circle text-2xl sm:text-4xl"></i>
-            </button>
+            <!-- Right Side: Controls -->
+            <div class="flex items-center space-x-3 sm:space-x-5 pr-2 sm:pr-4">
+                <button id="prev" class="text-gray-300 hover:text-white transition focus:outline-none">
+                    <i class="fas fa-step-backward text-sm sm:text-lg"></i>
+                </button>
+                
+                <button id="play-pause" class="w-10 h-10 sm:w-12 sm:h-12 bg-white text-black rounded-full flex items-center justify-center hover:scale-105 transition focus:outline-none">
+                    <i id="play-icon" class="fas fa-play ml-1"></i>
+                </button>
+                
+                <button id="next" class="text-gray-300 hover:text-white transition focus:outline-none">
+                    <i class="fas fa-step-forward text-sm sm:text-lg"></i>
+                </button>
+            </div>
         </div>
     </div>
 
-    <!-- Hidden YouTube Player Container -->
-    <div id="ytplayer" class="hidden absolute opacity-0 pointer-events-none"></div>
-
+    <!-- Scripts -->
+    <script src="https://www.youtube.com/iframe_api"></script>
     <script>
-        // --- 1. Clock Logic ---
+        // --- 1. Background Switcher (60 Seconds) ---
+        const bgs = [
+            document.getElementById('bg-1'),
+            document.getElementById('bg-2'),
+            document.getElementById('bg-3')
+        ];
+        let currentBg = 0;
+
+        setInterval(() => {
+            bgs[currentBg].classList.remove('active');
+            currentBg = (currentBg + 1) % bgs.length;
+            bgs[currentBg].classList.add('active');
+            
+            // If the active background is the video, ensure it stays playing
+            if(bgs[currentBg].tagName === 'VIDEO') {
+                bgs[currentBg].play();
+            }
+        }, 60000); // 60,000 milliseconds = 60 seconds
+
+        // --- 2. Live Clock ---
         function updateClock() {
             const now = new Date();
             let hours = now.getHours();
             let minutes = now.getMinutes();
             const ampm = hours >= 12 ? 'PM' : 'AM';
-            
             hours = hours % 12;
-            hours = hours ? hours : 12; // the hour '0' should be '12'
+            hours = hours ? hours : 12;
             minutes = minutes < 10 ? '0' + minutes : minutes;
-            
-            document.getElementById('clock-time').innerText = `${hours}:${minutes}`;
-            document.getElementById('clock-ampm').innerText = ampm;
+            document.getElementById('clock').innerText = hours + ':' + minutes + ' ' + ampm;
         }
         setInterval(updateClock, 1000);
-        updateClock(); // Initial call
+        updateClock();
 
-        // --- 2. Background Image Crossfader (30 mins) ---
-        const BG_INTERVAL_MS = 30 * 60 * 1000; // 30 minutes in milliseconds
-        let showingBg1 = true;
-        
-        setInterval(() => {
-            const bg1 = document.getElementById('bg1');
-            const bg2 = document.getElementById('bg2');
-            
-            if (showingBg1) {
-                bg1.style.opacity = '0';
-                bg2.style.opacity = '1';
-            } else {
-                bg1.style.opacity = '1';
-                bg2.style.opacity = '0';
-            }
-            showingBg1 = !showingBg1;
-        }, BG_INTERVAL_MS);
-
-        // --- 3. YouTube Iframe API Integration ---
+        // --- 3. YouTube Audio Player Logic ---
         let player;
-        let isReady = false;
         let isPlaying = false;
         let progressInterval;
 
-        // Dynamically load the YouTube Iframe API script
-        const tag = document.createElement('script');
-        tag.src = "https://www.youtube.com/iframe_api";
-        const firstScriptTag = document.getElementsByTagName('script')[0];
-        firstScriptTag.parentNode.insertBefore(tag, firstScriptTag);
-
         function onYouTubeIframeAPIReady() {
-            player = new YT.Player('ytplayer', {
-                height: '0',
+            player = new YT.Player('yt-player', {
+                height: '0', 
                 width: '0',
                 playerVars: {
                     listType: 'playlist',
-                    list: 'PL735nzlwLB47cmb2kjt-lJXPYU9fZS6Ru', // The requested Playlist ID
-                    autoplay: 0,
-                    controls: 0,
-                    disablekb: 1,
-                    fs: 0,
-                    modestbranding: 1,
-                    playsinline: 1
+                    list: 'PL735nzlwLB47cmb2kjt-lJXPYU9fZS6Ru',
+                    autoplay: 0, 
+                    controls: 0, 
+                    disablekb: 1, 
+                    fs: 0
                 },
                 events: {
                     'onReady': onPlayerReady,
@@ -208,110 +180,71 @@
         }
 
         function onPlayerReady(event) {
-            isReady = true;
-            // Enable the Splash Screen button
-            const splashBtn = document.getElementById('splash-btn');
-            splashBtn.innerText = "Enter Station";
-            splashBtn.classList.remove('opacity-50', 'cursor-not-allowed');
-            splashBtn.disabled = false;
+            // Remove Splash Screen & Start Audio on Click
+            document.getElementById('enter-btn').addEventListener('click', () => {
+                document.getElementById('splash').style.opacity = '0';
+                setTimeout(() => { document.getElementById('splash').style.display = 'none'; }, 500);
+                
+                player.setVolume(70);
+                player.playVideo();
+            });
+            
+            // Setup Control Buttons
+            document.getElementById('play-pause').addEventListener('click', () => {
+                if(isPlaying) player.pauseVideo();
+                else player.playVideo();
+            });
+            
+            document.getElementById('prev').addEventListener('click', () => player.previousVideo());
+            document.getElementById('next').addEventListener('click', () => player.nextVideo());
         }
 
         function onPlayerStateChange(event) {
-            const albumArt = document.getElementById('album-art');
-            const playIcon = document.getElementById('icon-playpause');
+            const playIcon = document.getElementById('play-icon');
+            const thumb = document.getElementById('album-art');
             
-            if (event.data === YT.PlayerState.PLAYING) {
+            if (event.data == YT.PlayerState.PLAYING) {
                 isPlaying = true;
                 
                 // Update icons and animations
-                playIcon.classList.remove('ph-play', 'ml-0.5', 'sm:ml-1');
-                playIcon.classList.add('ph-pause');
-                albumArt.classList.add('spin-slow');
+                playIcon.classList.remove('fa-play');
+                playIcon.classList.add('fa-pause');
+                playIcon.classList.remove('ml-1'); // fix center alignment for pause icon
+                thumb.classList.remove('spin-paused');
+                thumb.classList.add('spin-slow');
                 
-                updateTrackMetadata();
-                startProgressTracker();
+                // Pull live YouTube metadata (Title, Channel, Thumbnail)
+                let data = player.getVideoData();
+                document.getElementById('song-title').innerText = data.title;
+                document.getElementById('song-artist').innerText = data.author;
+                document.getElementById('album-art').src = 'https://img.youtube.com/vi/' + data.video_id + '/hqdefault.jpg';
+                
+                // Start tracking progress bar
+                clearInterval(progressInterval);
+                progressInterval = setInterval(updateProgress, 1000);
+                
             } else {
                 isPlaying = false;
                 
                 // Pause icons and animations
-                playIcon.classList.remove('ph-pause');
-                playIcon.classList.add('ph-play', 'ml-0.5', 'sm:ml-1'); 
-                albumArt.classList.remove('spin-slow');
+                playIcon.classList.remove('fa-pause');
+                playIcon.classList.add('fa-play');
+                playIcon.classList.add('ml-1'); 
+                thumb.classList.add('spin-paused');
                 
-                stopProgressTracker();
-            }
-        }
-
-        function updateTrackMetadata() {
-            if (!player || !player.getVideoData) return;
-            
-            const data = player.getVideoData();
-            if (data && data.title) {
-                // Remove generic terms from typical YouTube lofi streams if desired, or keep as is.
-                document.getElementById('track-title').innerText = data.title;
-                document.getElementById('track-artist').innerText = data.author || "Lofi Radio Stream";
-                
-                // Fetch highest quality thumbnail via YouTube img server
-                const videoId = data.video_id;
-                if (videoId) {
-                    const thumbUrl = `https://img.youtube.com/vi/${videoId}/maxresdefault.jpg`;
-                    // Fallback to hqdefault if maxres doesn't exist
-                    document.getElementById('album-art').src = thumbUrl;
-                    document.getElementById('album-art').onerror = function() {
-                        this.src = `https://img.youtube.com/vi/${videoId}/hqdefault.jpg`;
-                    };
-                }
-            }
-        }
-
-        function startProgressTracker() {
-            stopProgressTracker();
-            progressInterval = setInterval(() => {
-                if (player && player.getCurrentTime && player.getDuration) {
-                    const current = player.getCurrentTime();
-                    const duration = player.getDuration();
-                    if (duration > 0) {
-                        const percent = (current / duration) * 100;
-                        document.getElementById('progress-fill').style.width = `${percent}%`;
-                    }
-                }
-            }, 500);
-        }
-
-        function stopProgressTracker() {
-            if (progressInterval) {
+                // Stop tracking progress bar
                 clearInterval(progressInterval);
             }
         }
 
-        // --- 4. Event Listeners ---
-        // Splash Screen Enter
-        document.getElementById('splash-btn').addEventListener('click', () => {
-            if (isReady) {
-                document.getElementById('splash').classList.add('opacity-0', 'pointer-events-none');
-                player.playVideo();
+        function updateProgress() {
+            if(player && player.getDuration) {
+                const duration = player.getDuration();
+                const current = player.getCurrentTime();
+                const percent = (current / duration) * 100;
+                document.getElementById('progress-fill').style.width = percent + '%';
             }
-        });
-
-        // Play/Pause Button
-        document.getElementById('btn-playpause').addEventListener('click', () => {
-            if (!isReady) return;
-            if (isPlaying) {
-                player.pauseVideo();
-            } else {
-                player.playVideo();
-            }
-        });
-
-        // Previous Track
-        document.getElementById('btn-prev').addEventListener('click', () => {
-            if (isReady) player.previousVideo();
-        });
-
-        // Next Track
-        document.getElementById('btn-next').addEventListener('click', () => {
-            if (isReady) player.nextVideo();
-        });
+        }
     </script>
 </body>
 </html>
