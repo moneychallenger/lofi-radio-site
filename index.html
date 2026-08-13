@@ -186,6 +186,7 @@
                 setTimeout(() => { document.getElementById('splash').style.display = 'none'; }, 500);
                 
                 player.setVolume(70);
+                player.setShuffle(true); // <--- This command shuffles your playlist!
                 player.playVideo();
             });
             
