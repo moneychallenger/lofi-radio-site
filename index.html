@@ -80,9 +80,9 @@
 
     <div class="live-clock" id="live-clock">00:00 AM</div>
 
-    <!-- Background Video configured for WebM -->
+    <!-- Background Video using your exact filenames -->
     <video autoplay loop muted playsinline id="bg-video">
-        <source src="video1.webm" type="video/webm">
+        <source src="make_this_image_into_a_animati.webp" type="video/webm">
         Your browser does not support the video tag.
     </video>
 
@@ -222,8 +222,12 @@
         function nextTrack() { if (player && typeof player.nextVideo === 'function') { player.nextVideo(); } }
         function prevTrack() { if (player && typeof player.previousVideo === 'function') { player.previousVideo(); } }
 
+        // 30-minute rotation switching between your two uploaded files
         const bgVideoElement = document.getElementById('bg-video');
-        const playlistVideos = ['video1.webm', 'video2.webm'];
+        const playlistVideos = [
+            'make_this_image_into_a_animati.webp', 
+            'make_this_image_into_a_animati (1) (1).webp'
+        ];
         let currentVideoIndex = 0;
         const THIRTY_MINUTES = 30 * 60 * 1000; 
 
