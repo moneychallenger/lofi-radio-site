@@ -11,68 +11,111 @@
     
     <style>
         /* Base Styles */
-        body { 
-            margin: 0; 
-            overflow: hidden; 
-            font-family: 'Inter', sans-serif; 
-            background-color: #000; 
-        }
+        body { margin: 0; overflow: hidden; font-family: 'Inter', sans-serif; background-color: #000; }
         
-        /* 1. The Blurred Background Video Layer */
-        .bg-blur {
-            position: fixed;
-            top: -5%;
-            left: -5%;
-            width: 110vw;
-            height: 110vh;
-            z-index: -3;
-            object-fit: cover; /* Stretches to fill the screen */
-            filter: blur(25px) brightness(0.5); /* Creates the dark frosted glass effect */
-        }
-
-        /* 2. The Main Sharp Video Layer */
-        .bg-asset {
-            position: fixed;
-            top: 0;
-            left: 0;
+        /* Master Layout */
+        .layout-wrapper {
+            display: flex;
             width: 100vw;
             height: 100vh;
-            z-index: -2;
-            object-fit: contain; /* Keeps the whole video visible without stretching */
-            object-position: center center;
-            box-shadow: 0 0 50px rgba(0,0,0,0.8); /* Adds a shadow to separate it from the background */
+            background: #000;
         }
 
-        /* Screen Orientation Logic */
+        /* Wooden Shelf Texture & Shadows */
+        .wood-shelf {
+            background: linear-gradient(180deg, #3a2318 0%, #1a0b05 100%);
+            border: 2px solid #0f0502;
+            box-shadow: inset 0 0 20px rgba(0,0,0,0.9), 0 0 15px rgba(0,0,0,1);
+            z-index: 10;
+        }
+
+        /* Responsive Layouts */
         @media (orientation: landscape) {
-            .portrait-vid { display: none; }
-            .landscape-vid { display: block; }
+            .layout-wrapper { flex-direction: row; }
+            .shelf-left { display: flex; flex-direction: column; width: 130px; height: 100vh; overflow-y: auto; padding: 20px 0; gap: 20px; align-items: center; }
+            .shelf-right { display: flex; flex-direction: column; width: 130px; height: 100vh; overflow-y: auto; padding: 20px 0; gap: 20px; align-items: center; }
+            .shelf-top { display: none; }
+            .main-content { flex-grow: 1; height: 100vh; position: relative; }
         }
         
         @media (orientation: portrait) {
-            .landscape-vid { display: none; }
-            .portrait-vid { display: block; }
+            .layout-wrapper { flex-direction: column; }
+            .shelf-left, .shelf-right { display: none; }
+            .shelf-top { display: flex; flex-direction: row; width: 100vw; height: 130px; overflow-x: auto; padding: 0 20px; gap: 20px; align-items: center; }
+            .main-content { flex-grow: 1; width: 100vw; position: relative; }
+        }
+
+        /* Custom Scrollbar for Shelves */
+        ::-webkit-scrollbar { width: 6px; height: 6px; }
+        ::-webkit-scrollbar-track { background: #1a0b05; }
+        ::-webkit-scrollbar-thumb { background: #5c4033; border-radius: 10px; }
+        ::-webkit-scrollbar-thumb:hover { background: #875e4b; }
+
+        /* Background Video in Center */
+        .bg-asset {
+            position: absolute;
+            top: 0; left: 0;
+            width: 100%; height: 100%;
+            object-fit: contain; /* Keeps the whole video visible */
+            z-index: 0;
+        }
+        
+        /* Orientation Video Toggle */
+        @media (orientation: landscape) { #bg-portrait { display: none; } #bg-landscape { display: block; } }
+        @media (orientation: portrait) { #bg-landscape { display: none; } #bg-portrait { display: block; } }
+
+        /* The Vinyl Record Disks */
+        .disk-wrapper { flex-shrink: 0; width: 85px; height: 85px; }
+        .disk {
+            width: 100%; height: 100%;
+            border-radius: 50%;
+            background-color: #050505;
+            border: 2px solid #222;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.9), inset 0 0 12px rgba(0,0,0,1);
+            cursor: pointer;
+            transition: all 0.3s ease;
+            position: relative;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        /* Thumbnail on the Disk */
+        .disk img {
+            width: 65%; height: 65%; 
+            border-radius: 50%;
+            object-fit: cover;
+            pointer-events: none;
+        }
+        /* Center Hole */
+        .disk::after {
+            content: '';
+            position: absolute;
+            width: 10px; height: 10px;
+            background: #1a0b05; 
+            border-radius: 50%;
+            border: 1px solid #000;
+        }
+        /* Hover Effects */
+        .disk:hover {
+            transform: scale(1.15) rotate(15deg);
+            box-shadow: 0 10px 20px rgba(0,0,0,1);
+            border-color: #555;
         }
 
         /* Frosted Glass UI */
         .frosted-glass {
-            background: rgba(20, 20, 20, 0.5);
-            backdrop-filter: blur(16px);
-            -webkit-backdrop-filter: blur(16px);
-            border: 1px solid rgba(255, 255, 255, 0.15);
-            box-shadow: 0 4px 30px rgba(0, 0, 0, 0.3);
+            background: rgba(20, 20, 20, 0.6);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            box-shadow: 0 4px 30px rgba(0, 0, 0, 0.5);
+            z-index: 20;
         }
 
-        /* Spinning Album Art */
-        .spin-slow {
-            animation: spin 4s linear infinite;
-        }
-        .spin-paused {
-            animation-play-state: paused;
-        }
-        @keyframes spin {
-            100% { transform: rotate(360deg); }
-        }
+        /* Spinning Album Art (Main Player) */
+        .spin-slow { animation: spin 4s linear infinite; }
+        .spin-paused { animation-play-state: paused; }
+        @keyframes spin { 100% { transform: rotate(360deg); } }
 
         /* Splash Screen */
         #splash {
@@ -93,57 +136,66 @@
         </button>
     </div>
 
-    <!-- Cinematic Blur Background Layers -->
-    <video src="landscape.mp4" autoplay loop muted playsinline class="bg-blur landscape-vid"></video>
-    <video src="potrate.mp4" autoplay loop muted playsinline class="bg-blur portrait-vid"></video>
+    <!-- Master Layout -->
+    <div class="layout-wrapper">
+        
+        <!-- Left Wood Shelf (Laptop only) -->
+        <div id="shelf-left" class="wood-shelf shelf-left"></div>
+        
+        <!-- Top Wood Shelf (Phone only) -->
+        <div id="shelf-top" class="wood-shelf shelf-top"></div>
 
-    <!-- Sharp Main Video Layers -->
-    <video src="landscape.mp4" autoplay loop muted playsinline class="bg-asset landscape-vid"></video>
-    <video src="potrate.mp4" autoplay loop muted playsinline class="bg-asset portrait-vid"></video>
+        <!-- Center Video & Player Area -->
+        <div class="main-content">
+            <!-- Background Videos -->
+            <video id="bg-landscape" src="landscape.mp4" autoplay loop muted playsinline class="bg-asset"></video>
+            <video id="bg-portrait" src="potrate.mp4" autoplay loop muted playsinline class="bg-asset"></video>
 
-    <!-- Top Left Live Clock -->
-    <div class="absolute top-6 left-6 frosted-glass px-4 py-2 rounded-xl">
-        <span id="clock" class="text-lg sm:text-2xl font-semibold tracking-wide drop-shadow-md">00:00 AM</span>
+            <!-- Top Left Live Clock -->
+            <div class="absolute top-4 left-4 sm:top-6 sm:left-6 frosted-glass px-4 py-2 rounded-xl">
+                <span id="clock" class="text-lg sm:text-2xl font-semibold tracking-wide drop-shadow-md">00:00 AM</span>
+            </div>
+
+            <!-- Bottom Center Pill Bar -->
+            <div class="absolute bottom-4 sm:bottom-6 w-full flex justify-center px-4 z-20">
+                <div class="frosted-glass w-full max-w-2xl rounded-full flex items-center justify-between p-3 sm:p-4">
+                    <!-- Left Side: Art & Metadata -->
+                    <div class="flex items-center space-x-3 sm:space-x-4 overflow-hidden w-2/3">
+                        <img id="album-art" src="https://via.placeholder.com/150" alt="Album Art" class="w-10 h-10 sm:w-14 sm:h-14 rounded-full object-cover spin-paused">
+                        <div class="flex flex-col w-full">
+                            <span id="song-title" class="text-sm sm:text-base font-bold truncate">Loading Stream...</span>
+                            <span id="song-artist" class="text-xs sm:text-sm text-gray-300 truncate">Connecting to YouTube</span>
+                            
+                            <!-- INTERACTIVE Progress Bar -->
+                            <div id="progress-container" class="w-full h-1 bg-gray-600 rounded-full mt-1.5 overflow-hidden cursor-pointer hover:h-2 transition-all duration-200">
+                                <div id="progress-fill" class="h-full bg-white w-0 transition-all duration-1000 ease-linear pointer-events-none"></div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Right Side: Controls -->
+                    <div class="flex items-center space-x-3 sm:space-x-5 pr-2 sm:pr-4">
+                        <button id="prev" class="text-gray-300 hover:text-white transition focus:outline-none">
+                            <i class="fas fa-step-backward text-sm sm:text-lg"></i>
+                        </button>
+                        <button id="play-pause" class="w-10 h-10 sm:w-12 sm:h-12 bg-white text-black rounded-full flex items-center justify-center hover:scale-105 transition focus:outline-none">
+                            <i id="play-icon" class="fas fa-play ml-1"></i>
+                        </button>
+                        <button id="next" class="text-gray-300 hover:text-white transition focus:outline-none">
+                            <i class="fas fa-step-forward text-sm sm:text-lg"></i>
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Right Wood Shelf (Laptop only) -->
+        <div id="shelf-right" class="wood-shelf shelf-right"></div>
+        
     </div>
 
     <!-- Hidden YouTube Player -->
     <div id="yt-player" class="hidden"></div>
-
-    <!-- Bottom Center Pill Bar -->
-    <div class="absolute bottom-6 w-full flex justify-center px-4">
-        <div class="frosted-glass w-full max-w-2xl rounded-full flex items-center justify-between p-3 sm:p-4">
-            
-            <!-- Left Side: Art & Metadata -->
-            <div class="flex items-center space-x-3 sm:space-x-4 overflow-hidden w-2/3">
-                <img id="album-art" src="https://via.placeholder.com/150" alt="Album Art" class="w-10 h-10 sm:w-14 sm:h-14 rounded-full object-cover spin-paused">
-                
-                <div class="flex flex-col w-full">
-                    <span id="song-title" class="text-sm sm:text-base font-bold truncate">Loading Stream...</span>
-                    <span id="song-artist" class="text-xs sm:text-sm text-gray-300 truncate">Connecting to YouTube</span>
-                    
-                    <!-- INTERACTIVE Progress Bar -->
-                    <div id="progress-container" class="w-full h-1 bg-gray-600 rounded-full mt-1.5 overflow-hidden cursor-pointer hover:h-2 transition-all duration-200">
-                        <div id="progress-fill" class="h-full bg-white w-0 transition-all duration-1000 ease-linear pointer-events-none"></div>
-                    </div>
-                </div>
-            </div>
-
-            <!-- Right Side: Controls -->
-            <div class="flex items-center space-x-3 sm:space-x-5 pr-2 sm:pr-4">
-                <button id="prev" class="text-gray-300 hover:text-white transition focus:outline-none">
-                    <i class="fas fa-step-backward text-sm sm:text-lg"></i>
-                </button>
-                
-                <button id="play-pause" class="w-10 h-10 sm:w-12 sm:h-12 bg-white text-black rounded-full flex items-center justify-center hover:scale-105 transition focus:outline-none">
-                    <i id="play-icon" class="fas fa-play ml-1"></i>
-                </button>
-                
-                <button id="next" class="text-gray-300 hover:text-white transition focus:outline-none">
-                    <i class="fas fa-step-forward text-sm sm:text-lg"></i>
-                </button>
-            </div>
-        </div>
-    </div>
 
     <!-- Scripts -->
     <script src="https://www.youtube.com/iframe_api"></script>
@@ -162,10 +214,11 @@
         setInterval(updateClock, 1000);
         updateClock();
 
-        // --- 2. YouTube Audio Player Logic ---
+        // --- 2. YouTube Audio Player & Dynamic Shelves ---
         let player;
         let isPlaying = false;
         let progressInterval;
+        let shelvesBuilt = false;
 
         function onYouTubeIframeAPIReady() {
             player = new YT.Player('yt-player', {
@@ -173,7 +226,7 @@
                 width: '0',
                 playerVars: {
                     listType: 'playlist',
-                    list: 'PLblc3VxTs80U', 
+                    list: 'PLblc3VxTs80U', // Your playlist
                     autoplay: 0, 
                     controls: 0, 
                     disablekb: 1, 
@@ -204,6 +257,7 @@
             document.getElementById('prev').addEventListener('click', () => player.previousVideo());
             document.getElementById('next').addEventListener('click', () => player.nextVideo());
 
+            // Clickable Progress Bar
             document.getElementById('progress-container').addEventListener('click', function(e) {
                 if(player && player.getDuration) {
                     const rect = this.getBoundingClientRect();
@@ -215,12 +269,61 @@
             });
         }
 
+        // Generate the vinyl records based on the playlist!
+        function buildShelves() {
+            const playlist = player.getPlaylist();
+            if (!playlist || playlist.length === 0) return; 
+
+            const leftShelf = document.getElementById('shelf-left');
+            const rightShelf = document.getElementById('shelf-right');
+            const topShelf = document.getElementById('shelf-top');
+
+            playlist.forEach((vidId, index) => {
+                const imgUrl = 'https://img.youtube.com/vi/' + vidId + '/hqdefault.jpg';
+                
+                // Function to build a clickable vinyl record
+                const createDisk = () => {
+                    const wrapper = document.createElement('div');
+                    wrapper.className = 'disk-wrapper';
+                    
+                    const disk = document.createElement('div');
+                    disk.className = 'disk';
+                    disk.title = "Play Song " + (index + 1);
+                    
+                    // Clicking the record skips to that song!
+                    disk.onclick = () => player.playVideoAt(index);
+                    
+                    const img = document.createElement('img');
+                    img.src = imgUrl;
+                    
+                    disk.appendChild(img);
+                    wrapper.appendChild(disk);
+                    return wrapper;
+                };
+
+                // Add to mobile top shelf
+                topShelf.appendChild(createDisk());
+
+                // Alternate dividing the records between laptop left and right shelves
+                if (index % 2 === 0) {
+                    leftShelf.appendChild(createDisk());
+                } else {
+                    rightShelf.appendChild(createDisk());
+                }
+            });
+            
+            shelvesBuilt = true;
+        }
+
         function onPlayerStateChange(event) {
             const playIcon = document.getElementById('play-icon');
             const thumb = document.getElementById('album-art');
             
             if (event.data == YT.PlayerState.PLAYING) {
                 isPlaying = true;
+                
+                // Build the shelves once the music officially starts and playlist is loaded
+                if (!shelvesBuilt) buildShelves();
                 
                 playIcon.classList.remove('fa-play');
                 playIcon.classList.add('fa-pause');
