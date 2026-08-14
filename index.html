@@ -13,7 +13,7 @@
         /* Base Styles */
         body { margin: 0; overflow: hidden; font-family: 'Inter', sans-serif; background-color: #000; }
         
-        /* Background Video Styling - PERFECT CENTERING */
+        /* Background Video Styling - THE "FILL" METHOD */
         .bg-asset {
             position: fixed;
             top: 0;
@@ -21,7 +21,7 @@
             width: 100vw;
             height: 100vh;
             z-index: -2;
-            object-fit: cover;
+            object-fit: fill; /* <--- Changed to "fill" to stretch the video to all 4 corners */
             object-position: center center;
         }
 
@@ -173,7 +173,7 @@
                 setTimeout(() => { document.getElementById('splash').style.display = 'none'; }, 500);
                 
                 player.setVolume(70);
-                player.setShuffle(true); // Shuffle is ON!
+                player.setShuffle(true); 
                 player.playVideo();
             });
             
@@ -186,14 +186,14 @@
             document.getElementById('prev').addEventListener('click', () => player.previousVideo());
             document.getElementById('next').addEventListener('click', () => player.nextVideo());
 
-            // --- NEW: Clickable Progress Bar Logic ---
+            // --- Clickable Progress Bar Logic ---
             document.getElementById('progress-container').addEventListener('click', function(e) {
                 if(player && player.getDuration) {
                     const rect = this.getBoundingClientRect();
                     const clickX = e.clientX - rect.left;
                     const percent = clickX / rect.width;
                     const seekTime = percent * player.getDuration();
-                    player.seekTo(seekTime, true); // Jump to that time in the song
+                    player.seekTo(seekTime, true);
                 }
             });
         }
