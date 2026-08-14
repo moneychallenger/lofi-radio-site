@@ -13,15 +13,16 @@
         /* Base Styles */
         body { margin: 0; overflow: hidden; font-family: 'Inter', sans-serif; background-color: #000; }
         
-        /* Background Video Styling */
+        /* Background Video Styling - PERFECT CENTERING */
         .bg-asset {
             position: fixed;
-            right: 0;
-            bottom: 0;
-            min-width: 100%;
-            min-height: 100%;
+            top: 0;
+            left: 0;
+            width: 100vw;
+            height: 100vh;
             z-index: -2;
             object-fit: cover;
+            object-position: center center;
         }
 
         /* Screen Orientation Logic */
@@ -100,9 +101,9 @@
                     <span id="song-title" class="text-sm sm:text-base font-bold truncate">Loading Stream...</span>
                     <span id="song-artist" class="text-xs sm:text-sm text-gray-300 truncate">Connecting to YouTube</span>
                     
-                    <!-- Progress Bar -->
-                    <div class="w-full h-1 bg-gray-600 rounded-full mt-1.5 overflow-hidden">
-                        <div id="progress-fill" class="h-full bg-white w-0 transition-all duration-1000 ease-linear"></div>
+                    <!-- INTERACTIVE Progress Bar -->
+                    <div id="progress-container" class="w-full h-1 bg-gray-600 rounded-full mt-1.5 overflow-hidden cursor-pointer hover:h-2 transition-all duration-200">
+                        <div id="progress-fill" class="h-full bg-white w-0 transition-all duration-1000 ease-linear pointer-events-none"></div>
                     </div>
                 </div>
             </div>
@@ -152,7 +153,7 @@
                 width: '0',
                 playerVars: {
                     listType: 'playlist',
-                    list: 'PL735nzlwLB47cmb2kjt-lJXPYU9fZS6Ru',
+                    list: 'PLblc3VxTs80U', // Your playlist
                     autoplay: 0, 
                     controls: 0, 
                     disablekb: 1, 
@@ -172,7 +173,7 @@
                 setTimeout(() => { document.getElementById('splash').style.display = 'none'; }, 500);
                 
                 player.setVolume(70);
-                player.setShuffle(true); // Shuffles the playlist
+                player.setShuffle(true); // Shuffle is ON!
                 player.playVideo();
             });
             
@@ -184,6 +185,17 @@
             
             document.getElementById('prev').addEventListener('click', () => player.previousVideo());
             document.getElementById('next').addEventListener('click', () => player.nextVideo());
+
+            // --- NEW: Clickable Progress Bar Logic ---
+            document.getElementById('progress-container').addEventListener('click', function(e) {
+                if(player && player.getDuration) {
+                    const rect = this.getBoundingClientRect();
+                    const clickX = e.clientX - rect.left;
+                    const percent = clickX / rect.width;
+                    const seekTime = percent * player.getDuration();
+                    player.seekTo(seekTime, true); // Jump to that time in the song
+                }
+            });
         }
 
         function onPlayerStateChange(event) {
