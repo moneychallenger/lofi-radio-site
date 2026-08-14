@@ -11,9 +11,26 @@
     
     <style>
         /* Base Styles */
-        body { margin: 0; overflow: hidden; font-family: 'Inter', sans-serif; background-color: #000; }
+        body { 
+            margin: 0; 
+            overflow: hidden; 
+            font-family: 'Inter', sans-serif; 
+            background-color: #000; 
+        }
         
-        /* Background Video Styling - THE "FILL" METHOD */
+        /* 1. The Blurred Background Video Layer */
+        .bg-blur {
+            position: fixed;
+            top: -5%;
+            left: -5%;
+            width: 110vw;
+            height: 110vh;
+            z-index: -3;
+            object-fit: cover; /* Stretches to fill the screen */
+            filter: blur(25px) brightness(0.5); /* Creates the dark frosted glass effect */
+        }
+
+        /* 2. The Main Sharp Video Layer */
         .bg-asset {
             position: fixed;
             top: 0;
@@ -21,19 +38,20 @@
             width: 100vw;
             height: 100vh;
             z-index: -2;
-            object-fit: fill; /* <--- Changed to "fill" to stretch the video to all 4 corners */
+            object-fit: contain; /* Keeps the whole video visible without stretching */
             object-position: center center;
+            box-shadow: 0 0 50px rgba(0,0,0,0.8); /* Adds a shadow to separate it from the background */
         }
 
         /* Screen Orientation Logic */
         @media (orientation: landscape) {
-            #bg-portrait { display: none; }
-            #bg-landscape { display: block; }
+            .portrait-vid { display: none; }
+            .landscape-vid { display: block; }
         }
         
         @media (orientation: portrait) {
-            #bg-landscape { display: none; }
-            #bg-portrait { display: block; }
+            .landscape-vid { display: none; }
+            .portrait-vid { display: block; }
         }
 
         /* Frosted Glass UI */
@@ -67,7 +85,7 @@
 </head>
 <body class="text-white">
 
-    <!-- Splash Screen (Required for browser autoplay policies) -->
+    <!-- Splash Screen -->
     <div id="splash">
         <h1 class="text-3xl font-bold mb-6 tracking-wider">LOFI STATION</h1>
         <button id="enter-btn" class="px-8 py-3 bg-white text-black font-semibold rounded-full hover:bg-gray-200 transition">
@@ -75,9 +93,13 @@
         </button>
     </div>
 
-    <!-- Background Videos (Toggled via CSS based on orientation) -->
-    <video id="bg-landscape" src="landscape.mp4" autoplay loop muted playsinline class="bg-asset"></video>
-    <video id="bg-portrait" src="potrate.mp4" autoplay loop muted playsinline class="bg-asset"></video>
+    <!-- Cinematic Blur Background Layers -->
+    <video src="landscape.mp4" autoplay loop muted playsinline class="bg-blur landscape-vid"></video>
+    <video src="potrate.mp4" autoplay loop muted playsinline class="bg-blur portrait-vid"></video>
+
+    <!-- Sharp Main Video Layers -->
+    <video src="landscape.mp4" autoplay loop muted playsinline class="bg-asset landscape-vid"></video>
+    <video src="potrate.mp4" autoplay loop muted playsinline class="bg-asset portrait-vid"></video>
 
     <!-- Top Left Live Clock -->
     <div class="absolute top-6 left-6 frosted-glass px-4 py-2 rounded-xl">
@@ -93,11 +115,9 @@
             
             <!-- Left Side: Art & Metadata -->
             <div class="flex items-center space-x-3 sm:space-x-4 overflow-hidden w-2/3">
-                <!-- Album Art Thumbnail -->
                 <img id="album-art" src="https://via.placeholder.com/150" alt="Album Art" class="w-10 h-10 sm:w-14 sm:h-14 rounded-full object-cover spin-paused">
                 
                 <div class="flex flex-col w-full">
-                    <!-- Dynamic Text -->
                     <span id="song-title" class="text-sm sm:text-base font-bold truncate">Loading Stream...</span>
                     <span id="song-artist" class="text-xs sm:text-sm text-gray-300 truncate">Connecting to YouTube</span>
                     
@@ -153,7 +173,7 @@
                 width: '0',
                 playerVars: {
                     listType: 'playlist',
-                    list: 'PLblc3VxTs80U', // Your playlist
+                    list: 'PLblc3VxTs80U', 
                     autoplay: 0, 
                     controls: 0, 
                     disablekb: 1, 
@@ -167,7 +187,6 @@
         }
 
         function onPlayerReady(event) {
-            // Remove Splash Screen & Start Audio on Click
             document.getElementById('enter-btn').addEventListener('click', () => {
                 document.getElementById('splash').style.opacity = '0';
                 setTimeout(() => { document.getElementById('splash').style.display = 'none'; }, 500);
@@ -177,7 +196,6 @@
                 player.playVideo();
             });
             
-            // Setup Control Buttons
             document.getElementById('play-pause').addEventListener('click', () => {
                 if(isPlaying) player.pauseVideo();
                 else player.playVideo();
@@ -186,7 +204,6 @@
             document.getElementById('prev').addEventListener('click', () => player.previousVideo());
             document.getElementById('next').addEventListener('click', () => player.nextVideo());
 
-            // --- Clickable Progress Bar Logic ---
             document.getElementById('progress-container').addEventListener('click', function(e) {
                 if(player && player.getDuration) {
                     const rect = this.getBoundingClientRect();
@@ -205,33 +222,28 @@
             if (event.data == YT.PlayerState.PLAYING) {
                 isPlaying = true;
                 
-                // Update icons and animations
                 playIcon.classList.remove('fa-play');
                 playIcon.classList.add('fa-pause');
                 playIcon.classList.remove('ml-1'); 
                 thumb.classList.remove('spin-paused');
                 thumb.classList.add('spin-slow');
                 
-                // Pull live YouTube metadata
                 let data = player.getVideoData();
                 document.getElementById('song-title').innerText = data.title;
                 document.getElementById('song-artist').innerText = data.author;
                 document.getElementById('album-art').src = 'https://img.youtube.com/vi/' + data.video_id + '/hqdefault.jpg';
                 
-                // Start tracking progress bar
                 clearInterval(progressInterval);
                 progressInterval = setInterval(updateProgress, 1000);
                 
             } else {
                 isPlaying = false;
                 
-                // Pause icons and animations
                 playIcon.classList.remove('fa-pause');
                 playIcon.classList.add('fa-play');
                 playIcon.classList.add('ml-1'); 
                 thumb.classList.add('spin-paused');
                 
-                // Stop tracking progress bar
                 clearInterval(progressInterval);
             }
         }
