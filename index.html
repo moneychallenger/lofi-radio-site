@@ -10,14 +10,15 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     
     <style>
-        /* Base Styles */
+        /* Base Styles & Universal Box Sizing to fix padding math */
+        * { box-sizing: border-box; }
         body { margin: 0; overflow: hidden; font-family: 'Inter', sans-serif; background-color: #000; }
         
-        /* 1. Cinematic Blur Backgrounds */
+        /* 1. Cinematic Blur Backgrounds (Uses dvh for accurate mobile sizing) */
         .bg-blur {
             position: fixed;
             top: -5%; left: -5%;
-            width: 110vw; height: 110vh;
+            width: 110dvw; height: 110dvh;
             z-index: -3;
             object-fit: cover;
             filter: blur(25px) brightness(0.3);
@@ -27,7 +28,7 @@
         .main-vid {
             position: fixed;
             top: 0; left: 0;
-            width: 100vw; height: 100vh;
+            width: 100dvw; height: 100dvh;
             z-index: -2;
             object-fit: contain; 
             object-position: center center;
@@ -53,13 +54,13 @@
             display: flex;
             align-items: center;
             justify-content: flex-start;
-            gap: 20px;
+            gap: 15px;
             overflow: auto;
         }
 
         /* Left Shelf - Laptop */
         #shelf-left {
-            top: 0; left: 0; height: 100vh;
+            top: 0; left: 0; height: 100dvh;
             flex-direction: column;
             border-right: 4px solid #111;
             box-shadow: inset -15px 0 25px -5px rgba(255, 170, 50, 0.6), inset -2px 0 5px rgba(255, 220, 120, 0.9);
@@ -68,7 +69,7 @@
 
         /* Right Shelf - Laptop */
         #shelf-right {
-            top: 0; right: 0; height: 100vh;
+            top: 0; right: 0; height: 100dvh;
             flex-direction: column;
             border-left: 4px solid #111;
             box-shadow: inset 15px 0 25px -5px rgba(255, 170, 50, 0.6), inset 2px 0 5px rgba(255, 220, 120, 0.9);
@@ -77,7 +78,7 @@
 
         /* Top Shelf - Phone */
         #shelf-top {
-            top: 0; left: 0; width: 100vw;
+            top: 0; left: 0; width: 100dvw;
             flex-direction: row;
             border-bottom: 4px solid #111;
             box-shadow: inset 0 -15px 25px -5px rgba(255, 170, 50, 0.6), inset 0 -2px 5px rgba(255, 220, 120, 0.9);
@@ -85,18 +86,18 @@
         }
 
         /* Custom Scrollbar for Shelves */
-        ::-webkit-scrollbar { width: 5px; height: 5px; }
+        ::-webkit-scrollbar { width: 4px; height: 4px; }
         ::-webkit-scrollbar-track { background: rgba(0,0,0,0.3); }
         ::-webkit-scrollbar-thumb { background: #6b442a; border-radius: 10px; }
         ::-webkit-scrollbar-thumb:hover { background: #8c5b3a; }
 
-        /* The Vinyl Record Disks (UPDATED TO BE FLUID AND RESIZE AUTOMATICALLY) */
+        /* The Vinyl Record Disks - FLUID SCALING */
         .disk-wrapper { 
             flex-shrink: 0; 
-            height: 80%; /* Automatically scales based on the height of the shelf! */
-            aspect-ratio: 1 / 1; /* Keeps it a perfect circle */
-            max-height: 90px;
-            max-width: 90px;
+            height: 75%; /* Scales perfectly inside whatever size shelf is generated */
+            aspect-ratio: 1 / 1; 
+            max-height: 85px;
+            max-width: 85px;
             margin: 0 auto;
         }
         .disk {
@@ -195,15 +196,16 @@
             document.getElementById('clock').innerText = hours + ':' + (minutes < 10 ? '0' + minutes : minutes) + ' ' + ampm;
         }, 1000);
 
-        // --- AUTO-DETECT BLURRED AREA (FIXED FOR ALL SCREENS) ---
+        // --- BULLETPROOF BLUR DETECTION ---
         function calculateShelves() {
             const isLandscape = window.innerWidth > window.innerHeight;
             const video = isLandscape ? document.getElementById('main-landscape') : document.getElementById('main-portrait');
             
             if (!video || !video.videoWidth) return;
 
-            const winW = window.innerWidth;
-            const winH = window.innerHeight;
+            // Using direct video client math to completely ignore the mobile URL bar issue
+            const winW = video.clientWidth;
+            const winH = video.clientHeight;
             const winAR = winW / winH;
             const vidAR = video.videoWidth / video.videoHeight;
 
@@ -211,27 +213,27 @@
             const shelfRight = document.getElementById('shelf-right');
             const shelfTop = document.getElementById('shelf-top');
             
-            // Lowered the requirement so the shelf always appears if there is an ugly black bar!
-            const MIN_SHELF_SIZE = 30; 
+            // Only hide the shelf if the black space is smaller than 65 pixels
+            const MIN_SHELF_SIZE = 65; 
 
             shelfLeft.style.display = 'none'; shelfRight.style.display = 'none'; shelfTop.style.display = 'none';
 
             if (winAR > vidAR + 0.02) {
-                // Pillowboxes on Left & Right
+                // Wide screens
                 const vidRenderW = winH * vidAR;
                 const blankW = (winW - vidRenderW) / 2;
                 
                 if (blankW >= MIN_SHELF_SIZE) {
-                    shelfLeft.style.display = 'flex'; shelfLeft.style.width = `${blankW}px`;
-                    shelfRight.style.display = 'flex'; shelfRight.style.width = `${blankW}px`;
+                    shelfLeft.style.display = 'flex'; shelfLeft.style.width = `${blankW + 2}px`; // +2px prevents micro-gaps
+                    shelfRight.style.display = 'flex'; shelfRight.style.width = `${blankW + 2}px`;
                 }
             } else if (winAR < vidAR - 0.02) {
-                // Letterbox on Top
+                // Tall phone screens
                 const vidRenderH = winW / vidAR;
                 const blankH = (winH - vidRenderH) / 2;
                 
                 if (blankH >= MIN_SHELF_SIZE) {
-                    shelfTop.style.display = 'flex'; shelfTop.style.height = `${blankH}px`;
+                    shelfTop.style.display = 'flex'; shelfTop.style.height = `${blankH + 2}px`;
                 }
             }
         }
