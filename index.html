@@ -50,12 +50,12 @@
         @media (orientation: portrait) {
             .landscape-vid { display: none !important; }
             .portrait-vid { display: block; }
-            .bg-blur.portrait-vid { display: none !important; } /* Hide blur since main video fills screen */
+            .bg-blur.portrait-vid { display: none !important; } 
             .main-vid.portrait-vid {
-                object-fit: cover; /* Fills the whole screen without stretching */
-                object-position: top center; /* Keeps the top perfectly in frame, cuts bottom if needed */
+                object-fit: cover; 
+                object-position: top center; 
             }
-            .shelf { display: none !important; } /* Force hide shelves on phones */
+            .shelf { display: none !important; } 
         }
 
         /* --- THE DYNAMIC WOODEN SHELVES (Laptop Only) --- */
@@ -162,7 +162,7 @@
 
     <!-- NEW UI: Theme Switcher (Top Right) -->
     <div id="theme-switch-btn" class="absolute top-4 right-4 sm:top-6 sm:right-6 frosted-glass px-4 py-2 rounded-xl cursor-pointer hover:bg-white hover:text-black transition duration-300 flex items-center font-semibold text-sm sm:text-base">
-        <i class="fas fa-dumbbell mr-2"></i> Gym Mode
+        <i class="fas fa-dumbbell mr-2"></i> Switch to Gym
     </div>
 
     <!-- UI: Player Bar -->
@@ -192,33 +192,33 @@
     <script src="https://www.youtube.com/iframe_api"></script>
     <script>
         // --- THEME DATA & SWITCHING LOGIC ---
-        let currentTheme = 'lofi';
+        let currentTheme = 'lofi'; // Starts on Lofi Mode
         const themes = {
             lofi: {
                 playlistId: 'PLblc3VxTs80U',
                 landscapeVideo: 'landscape.mp4',
                 portraitVideo: 'potrate.mp4',
                 btnIcon: 'fa-dumbbell',
-                btnText: 'Gym Mode'
+                btnText: 'Switch to Gym' // Button shows this when in Lofi mode
             },
             gym: {
                 playlistId: 'PLQ4Jwqf6GX0U',
                 landscapeVideo: 'gym landscape.mp4',
                 portraitVideo: 'gym potrate.mp4',
                 btnIcon: 'fa-coffee',
-                btnText: 'Lofi Mode'
+                btnText: 'Switch to Lofi' // Button shows this when in Gym mode
             }
         };
 
         document.getElementById('theme-switch-btn').addEventListener('click', () => {
-            // 1. Swap Theme
+            // 1. Swap Theme Variable
             currentTheme = currentTheme === 'lofi' ? 'gym' : 'lofi';
             const theme = themes[currentTheme];
 
             // 2. Update Button UI
             document.getElementById('theme-switch-btn').innerHTML = `<i class="fas ${theme.btnIcon} mr-2"></i> ${theme.btnText}`;
 
-            // 3. Swap Background Videos & Ensure they Play
+            // 3. Swap Background Videos & FORCE BROWSER TO RELOAD THEM
             const videos = [
                 { id: 'blur-landscape', src: theme.landscapeVideo },
                 { id: 'blur-portrait', src: theme.portraitVideo },
@@ -227,8 +227,11 @@
             ];
             videos.forEach(v => {
                 const vidEl = document.getElementById(v.id);
-                vidEl.src = v.src;
-                vidEl.play();
+                if (vidEl) {
+                    vidEl.src = v.src;
+                    vidEl.load(); // <-- THIS IS THE MAGIC FIX that stops the video/audio mismatch!
+                    vidEl.play();
+                }
             });
 
             // 4. Wipe Shelves Clean
@@ -242,7 +245,12 @@
                     list: theme.playlistId,
                     listType: 'playlist'
                 });
-                setTimeout(() => { player.setShuffle(true); }, 500); // Small delay ensures playlist loads before shuffling
+                
+                // Slight delay ensures the new playlist is fully loaded before we shuffle it
+                setTimeout(() => { 
+                    player.setShuffle(true); 
+                    player.playVideo(); 
+                }, 1000); 
             }
         });
 
@@ -261,11 +269,9 @@
             const shelfLeft = document.getElementById('shelf-left');
             const shelfRight = document.getElementById('shelf-right');
             
-            // Reset visibility
             shelfLeft.style.display = 'none'; 
             shelfRight.style.display = 'none';
 
-            // Stop the script entirely if the user is on a phone/portrait
             if (!isLandscape) return; 
 
             const video = document.getElementById('main-landscape');
@@ -279,7 +285,6 @@
             const MIN_SHELF_SIZE = 65; 
 
             if (winAR > vidAR + 0.02) {
-                // Wide screens (black bars on left/right)
                 const vidRenderW = winH * vidAR;
                 const blankW = (winW - vidRenderW) / 2;
                 
@@ -338,7 +343,6 @@
                 d.appendChild(i); w.appendChild(d); return w;
             };
 
-            // Divide songs between left and right shelves
             playlist.forEach((vidId, index) => {
                 if (index % 2 === 0) document.getElementById('shelf-left').appendChild(createDisk(index, vidId));
                 else document.getElementById('shelf-right').appendChild(createDisk(index, vidId));
