@@ -25,7 +25,7 @@
             transition: opacity 0.5s ease;
         }
 
-        /* 2. Sharp Main Video (Base settings) */
+        /* 2. Sharp Main Video */
         .main-vid {
             position: fixed;
             top: 0; left: 0;
@@ -36,7 +36,7 @@
 
         /* --- DEVICE SPECIFIC LAYOUTS --- */
         
-        /* LAPTOP (Landscape): Contain video + Shelves */
+        /* LAPTOP (Landscape) */
         @media (orientation: landscape) {
             .portrait-vid { display: none !important; }
             .landscape-vid { display: block; }
@@ -46,7 +46,7 @@
             }
         }
         
-        /* PHONE (Portrait): Full screen Cover video + Top anchored */
+        /* PHONE (Portrait) */
         @media (orientation: portrait) {
             .landscape-vid { display: none !important; }
             .portrait-vid { display: block; }
@@ -160,7 +160,7 @@
         <span id="clock" class="text-lg sm:text-2xl font-semibold tracking-wide drop-shadow-md">00:00 AM</span>
     </div>
 
-    <!-- NEW UI: Theme Switcher (Top Right) -->
+    <!-- UI: Theme Switcher (Top Right) -->
     <div id="theme-switch-btn" class="absolute top-4 right-4 sm:top-6 sm:right-6 frosted-glass px-4 py-2 rounded-xl cursor-pointer hover:bg-white hover:text-black transition duration-300 flex items-center font-semibold text-sm sm:text-base">
         <i class="fas fa-dumbbell mr-2"></i> Switch to Gym
     </div>
@@ -186,15 +186,15 @@
         </div>
     </div>
 
-    <!-- Hidden YouTube Player -->
-    <div id="yt-player" class="hidden"></div>
+    <!-- Hidden YouTube Player Container (Crucial for the fix) -->
+    <div id="player-container" class="hidden">
+        <div id="yt-player"></div>
+    </div>
 
     <script src="https://www.youtube.com/iframe_api"></script>
     <script>
         // --- THEME DATA & SWITCHING LOGIC ---
         let currentTheme = 'lofi'; 
-        let isSwitchingTheme = false; // THE LOCK: prevents race conditions
-
         const themes = {
             lofi: {
                 playlistId: 'PLblc3VxTs80U',
@@ -212,10 +212,49 @@
             }
         };
 
-        document.getElementById('theme-switch-btn').addEventListener('click', () => {
-            if (isSwitchingTheme) return; // Ignore clicks if already loading
-            isSwitchingTheme = true; // Lock the script!
+        // --- GLOBAL VARIABLES ---
+        let player, isPlaying = false, progressInterval, shelvesBuilt = false, hasEntered = false;
 
+        // --- NUKE AND REBUILD YOUTUBE PLAYER ---
+        // This completely destroys the old player and forces a fresh connection to YouTube
+        function initYouTubePlayer(playlistId, isSwitching = false) {
+            player = new YT.Player('yt-player', {
+                height: '0', width: '0',
+                playerVars: { listType: 'playlist', list: playlistId, autoplay: 0, controls: 0, disablekb: 1, fs: 0 },
+                events: { 
+                    'onReady': (e) => {
+                        // If they switch themes AFTER hitting Enter Station, auto-play the new music
+                        if (isSwitching && hasEntered) {
+                            e.target.setVolume(70);
+                            setTimeout(() => {
+                                e.target.setShuffle(true);
+                                e.target.playVideoAt(0);
+                            }, 500);
+                        }
+                    }, 
+                    'onStateChange': onPlayerStateChange 
+                }
+            });
+        }
+
+        function onYouTubeIframeAPIReady() {
+            initYouTubePlayer(themes[currentTheme].playlistId, false);
+        }
+
+        // --- BUTTON EVENT LISTENERS (BOUND ONLY ONCE) ---
+        document.getElementById('enter-btn').addEventListener('click', () => {
+            hasEntered = true;
+            document.getElementById('splash').style.opacity = '0';
+            setTimeout(() => document.getElementById('splash').style.display = 'none', 500);
+            
+            player.setVolume(70);
+            setTimeout(() => {
+                player.setShuffle(true); 
+                player.playVideoAt(0);
+            }, 500); // Small delay guarantees YouTube had time to fetch the songs before shuffling!
+        });
+
+        document.getElementById('theme-switch-btn').addEventListener('click', () => {
             // 1. Swap Theme Variable
             currentTheme = currentTheme === 'lofi' ? 'gym' : 'lofi';
             const theme = themes[currentTheme];
@@ -244,23 +283,26 @@
             document.getElementById('shelf-left').innerHTML = '';
             document.getElementById('shelf-right').innerHTML = '';
             document.getElementById('song-title').innerText = "Loading Station...";
-            document.getElementById('song-artist').innerText = "Switching playlists...";
+            document.getElementById('song-artist').innerText = "Connecting to YouTube...";
 
-            // 5. Safely load the new YouTube Playlist
-            if (player && player.loadPlaylist) {
-                player.loadPlaylist({
-                    list: theme.playlistId,
-                    listType: 'playlist'
-                });
-                
-                // BULLETPROOF FIX: Wait exactly 2 seconds for YouTube to finish downloading the new playlist data!
-                setTimeout(() => { 
-                    player.setShuffle(true); 
-                    player.playVideoAt(0); 
-                    
-                    isSwitchingTheme = false; // Unlock!
-                    buildShelves(); // Safely rebuild shelves with correct data
-                }, 2000); 
+            // 5. DESTROY OLD PLAYER AND BUILD A FRESH ONE (The Fix!)
+            if (player && typeof player.destroy === 'function') {
+                player.destroy();
+            }
+            // Put the empty container back so YouTube has something to attach to
+            document.getElementById('player-container').innerHTML = '<div id="yt-player"></div>'; 
+            
+            // Re-run the builder with the new playlist ID
+            initYouTubePlayer(theme.playlistId, true);
+        });
+
+        document.getElementById('play-pause').addEventListener('click', () => isPlaying ? player.pauseVideo() : player.playVideo());
+        document.getElementById('prev').addEventListener('click', () => player.previousVideo());
+        document.getElementById('next').addEventListener('click', () => player.nextVideo());
+        document.getElementById('progress-container').addEventListener('click', function(e) {
+            if(player && player.getDuration) {
+                const rect = this.getBoundingClientRect();
+                player.seekTo(( (e.clientX - rect.left) / rect.width ) * player.getDuration(), true);
             }
         });
 
@@ -311,44 +353,13 @@
             if (v.readyState >= 1) calculateShelves(); 
         });
 
-        // --- YOUTUBE PLAYER LOGIC ---
-        let player, isPlaying = false, progressInterval, shelvesBuilt = false;
-
-        function onYouTubeIframeAPIReady() {
-            player = new YT.Player('yt-player', {
-                height: '0', width: '0',
-                playerVars: { listType: 'playlist', list: themes[currentTheme].playlistId, autoplay: 0, controls: 0, disablekb: 1, fs: 0 },
-                events: { 'onReady': onPlayerReady, 'onStateChange': onPlayerStateChange }
-            });
-        }
-
-        function onPlayerReady() {
-            document.getElementById('enter-btn').addEventListener('click', () => {
-                document.getElementById('splash').style.opacity = '0';
-                setTimeout(() => document.getElementById('splash').style.display = 'none', 500);
-                player.setVolume(70); 
-                player.setShuffle(true); 
-                player.playVideoAt(0);
-            });
-            
-            document.getElementById('play-pause').addEventListener('click', () => isPlaying ? player.pauseVideo() : player.playVideo());
-            document.getElementById('prev').addEventListener('click', () => player.previousVideo());
-            document.getElementById('next').addEventListener('click', () => player.nextVideo());
-
-            document.getElementById('progress-container').addEventListener('click', function(e) {
-                if(player && player.getDuration) {
-                    const rect = this.getBoundingClientRect();
-                    player.seekTo(( (e.clientX - rect.left) / rect.width ) * player.getDuration(), true);
-                }
-            });
-        }
-
+        // --- BUILD SHELVES ---
         function buildShelves() {
-            if (isSwitchingTheme || shelvesBuilt) return; // Do nothing if locked!
+            if (shelvesBuilt) return;
             
             const playlist = player.getPlaylist();
             if (!playlist || playlist.length === 0) {
-                setTimeout(buildShelves, 500); // Try again in a bit
+                setTimeout(buildShelves, 500); 
                 return; 
             }
 
@@ -372,12 +383,13 @@
             setTimeout(calculateShelves, 100); 
         }
 
+        // --- UPDATE UI ON SONG CHANGE ---
         function onPlayerStateChange(event) {
             const playIcon = document.getElementById('play-icon'), thumb = document.getElementById('album-art');
             if (event.data == YT.PlayerState.PLAYING) {
                 isPlaying = true;
                 
-                if (!shelvesBuilt && !isSwitchingTheme) buildShelves(); // Only build if unlocked!
+                if (!shelvesBuilt) buildShelves(); 
                 
                 playIcon.classList.replace('fa-play', 'fa-pause'); playIcon.classList.remove('ml-1'); 
                 thumb.classList.replace('spin-paused', 'spin-slow');
