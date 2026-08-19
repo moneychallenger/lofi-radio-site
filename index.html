@@ -192,25 +192,30 @@
     <script src="https://www.youtube.com/iframe_api"></script>
     <script>
         // --- THEME DATA & SWITCHING LOGIC ---
-        let currentTheme = 'lofi'; // Starts on Lofi Mode
+        let currentTheme = 'lofi'; 
+        let isSwitchingTheme = false; // THE LOCK: prevents race conditions
+
         const themes = {
             lofi: {
                 playlistId: 'PLblc3VxTs80U',
                 landscapeVideo: 'landscape.mp4',
                 portraitVideo: 'potrate.mp4',
                 btnIcon: 'fa-dumbbell',
-                btnText: 'Switch to Gym' // Button shows this when in Lofi mode
+                btnText: 'Switch to Gym'
             },
             gym: {
                 playlistId: 'PLQ4Jwqf6GX0U',
                 landscapeVideo: 'gym landscape.mp4',
                 portraitVideo: 'gym potrate.mp4',
                 btnIcon: 'fa-coffee',
-                btnText: 'Switch to Lofi' // Button shows this when in Gym mode
+                btnText: 'Switch to Lofi'
             }
         };
 
         document.getElementById('theme-switch-btn').addEventListener('click', () => {
+            if (isSwitchingTheme) return; // Ignore clicks if already loading
+            isSwitchingTheme = true; // Lock the script!
+
             // 1. Swap Theme Variable
             currentTheme = currentTheme === 'lofi' ? 'gym' : 'lofi';
             const theme = themes[currentTheme];
@@ -218,7 +223,7 @@
             // 2. Update Button UI
             document.getElementById('theme-switch-btn').innerHTML = `<i class="fas ${theme.btnIcon} mr-2"></i> ${theme.btnText}`;
 
-            // 3. Swap Background Videos & FORCE BROWSER TO RELOAD THEM
+            // 3. Swap Background Videos instantly
             const videos = [
                 { id: 'blur-landscape', src: theme.landscapeVideo },
                 { id: 'blur-portrait', src: theme.portraitVideo },
@@ -229,7 +234,7 @@
                 const vidEl = document.getElementById(v.id);
                 if (vidEl) {
                     vidEl.src = v.src;
-                    vidEl.load(); // <-- THIS IS THE MAGIC FIX that stops the video/audio mismatch!
+                    vidEl.load(); 
                     vidEl.play();
                 }
             });
@@ -238,19 +243,24 @@
             shelvesBuilt = false;
             document.getElementById('shelf-left').innerHTML = '';
             document.getElementById('shelf-right').innerHTML = '';
+            document.getElementById('song-title').innerText = "Loading Station...";
+            document.getElementById('song-artist').innerText = "Switching playlists...";
 
-            // 5. Load New Playlist & Shuffle
+            // 5. Safely load the new YouTube Playlist
             if (player && player.loadPlaylist) {
                 player.loadPlaylist({
                     list: theme.playlistId,
                     listType: 'playlist'
                 });
                 
-                // Slight delay ensures the new playlist is fully loaded before we shuffle it
+                // BULLETPROOF FIX: Wait exactly 2 seconds for YouTube to finish downloading the new playlist data!
                 setTimeout(() => { 
                     player.setShuffle(true); 
-                    player.playVideo(); 
-                }, 1000); 
+                    player.playVideoAt(0); 
+                    
+                    isSwitchingTheme = false; // Unlock!
+                    buildShelves(); // Safely rebuild shelves with correct data
+                }, 2000); 
             }
         });
 
@@ -316,7 +326,9 @@
             document.getElementById('enter-btn').addEventListener('click', () => {
                 document.getElementById('splash').style.opacity = '0';
                 setTimeout(() => document.getElementById('splash').style.display = 'none', 500);
-                player.setVolume(70); player.setShuffle(true); player.playVideo();
+                player.setVolume(70); 
+                player.setShuffle(true); 
+                player.playVideoAt(0);
             });
             
             document.getElementById('play-pause').addEventListener('click', () => isPlaying ? player.pauseVideo() : player.playVideo());
@@ -332,8 +344,16 @@
         }
 
         function buildShelves() {
+            if (isSwitchingTheme || shelvesBuilt) return; // Do nothing if locked!
+            
             const playlist = player.getPlaylist();
-            if (!playlist || playlist.length === 0) return; 
+            if (!playlist || playlist.length === 0) {
+                setTimeout(buildShelves, 500); // Try again in a bit
+                return; 
+            }
+
+            document.getElementById('shelf-left').innerHTML = '';
+            document.getElementById('shelf-right').innerHTML = '';
 
             const createDisk = (index, vidId) => {
                 const w = document.createElement('div'); w.className = 'disk-wrapper';
@@ -347,6 +367,7 @@
                 if (index % 2 === 0) document.getElementById('shelf-left').appendChild(createDisk(index, vidId));
                 else document.getElementById('shelf-right').appendChild(createDisk(index, vidId));
             });
+            
             shelvesBuilt = true;
             setTimeout(calculateShelves, 100); 
         }
@@ -355,13 +376,15 @@
             const playIcon = document.getElementById('play-icon'), thumb = document.getElementById('album-art');
             if (event.data == YT.PlayerState.PLAYING) {
                 isPlaying = true;
-                if (!shelvesBuilt) buildShelves(); // Generates NEW shelves anytime the playlist changes!
+                
+                if (!shelvesBuilt && !isSwitchingTheme) buildShelves(); // Only build if unlocked!
+                
                 playIcon.classList.replace('fa-play', 'fa-pause'); playIcon.classList.remove('ml-1'); 
                 thumb.classList.replace('spin-paused', 'spin-slow');
                 
                 let data = player.getVideoData();
-                document.getElementById('song-title').innerText = data.title;
-                document.getElementById('song-artist').innerText = data.author;
+                document.getElementById('song-title').innerText = data.title || "Loading Title...";
+                document.getElementById('song-artist').innerText = data.author || "Loading Artist...";
                 document.getElementById('album-art').src = 'https://img.youtube.com/vi/' + data.video_id + '/hqdefault.jpg';
                 
                 clearInterval(progressInterval);
