@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Lofi Radio Station</title>
+    <title>Lofi & Gym Radio Station</title>
     <!-- Tailwind CSS for styling -->
     <script src="https://cdn.tailwindcss.com"></script>
     <!-- FontAwesome for Icons -->
@@ -22,6 +22,7 @@
             z-index: -3;
             object-fit: cover;
             filter: blur(25px) brightness(0.3);
+            transition: opacity 0.5s ease;
         }
 
         /* 2. Sharp Main Video (Base settings) */
@@ -30,6 +31,7 @@
             top: 0; left: 0;
             width: 100dvw; height: 100dvh;
             z-index: -2;
+            transition: opacity 0.5s ease;
         }
 
         /* --- DEVICE SPECIFIC LAYOUTS --- */
@@ -95,7 +97,7 @@
         /* The Vinyl Record Disks */
         .disk-wrapper { 
             flex-shrink: 0; 
-            width: 75%; /* Scales relative to the shelf width */
+            width: 75%; 
             aspect-ratio: 1 / 1; 
             max-height: 85px; max-width: 85px;
             margin: 0 auto;
@@ -137,13 +139,13 @@
 <body class="text-white">
 
     <div id="splash">
-        <h1 class="text-3xl font-bold mb-6 tracking-wider">LOFI STATION</h1>
+        <h1 class="text-3xl font-bold mb-6 tracking-wider">STATION SELECT</h1>
         <button id="enter-btn" class="px-8 py-3 bg-white text-black font-semibold rounded-full hover:bg-gray-200 transition">Enter Station</button>
     </div>
 
     <!-- Blurred Backgrounds (Laptop Only) -->
-    <video src="landscape.mp4" autoplay loop muted playsinline class="bg-blur landscape-vid"></video>
-    <video src="potrate.mp4" autoplay loop muted playsinline class="bg-blur portrait-vid"></video>
+    <video id="blur-landscape" src="landscape.mp4" autoplay loop muted playsinline class="bg-blur landscape-vid"></video>
+    <video id="blur-portrait" src="potrate.mp4" autoplay loop muted playsinline class="bg-blur portrait-vid"></video>
 
     <!-- Sharp Main Videos -->
     <video id="main-landscape" src="landscape.mp4" autoplay loop muted playsinline class="main-vid landscape-vid"></video>
@@ -153,9 +155,14 @@
     <div id="shelf-left" class="shelf"></div>
     <div id="shelf-right" class="shelf"></div>
 
-    <!-- UI: Clock -->
+    <!-- UI: Clock (Top Left) -->
     <div class="absolute top-4 left-4 sm:top-6 sm:left-6 frosted-glass px-4 py-2 rounded-xl">
         <span id="clock" class="text-lg sm:text-2xl font-semibold tracking-wide drop-shadow-md">00:00 AM</span>
+    </div>
+
+    <!-- NEW UI: Theme Switcher (Top Right) -->
+    <div id="theme-switch-btn" class="absolute top-4 right-4 sm:top-6 sm:right-6 frosted-glass px-4 py-2 rounded-xl cursor-pointer hover:bg-white hover:text-black transition duration-300 flex items-center font-semibold text-sm sm:text-base">
+        <i class="fas fa-dumbbell mr-2"></i> Gym Mode
     </div>
 
     <!-- UI: Player Bar -->
@@ -184,6 +191,61 @@
 
     <script src="https://www.youtube.com/iframe_api"></script>
     <script>
+        // --- THEME DATA & SWITCHING LOGIC ---
+        let currentTheme = 'lofi';
+        const themes = {
+            lofi: {
+                playlistId: 'PLblc3VxTs80U',
+                landscapeVideo: 'landscape.mp4',
+                portraitVideo: 'potrate.mp4',
+                btnIcon: 'fa-dumbbell',
+                btnText: 'Gym Mode'
+            },
+            gym: {
+                playlistId: 'PLQ4Jwqf6GX0U',
+                landscapeVideo: 'gym landscape.mp4',
+                portraitVideo: 'gym potrate.mp4',
+                btnIcon: 'fa-coffee',
+                btnText: 'Lofi Mode'
+            }
+        };
+
+        document.getElementById('theme-switch-btn').addEventListener('click', () => {
+            // 1. Swap Theme
+            currentTheme = currentTheme === 'lofi' ? 'gym' : 'lofi';
+            const theme = themes[currentTheme];
+
+            // 2. Update Button UI
+            document.getElementById('theme-switch-btn').innerHTML = `<i class="fas ${theme.btnIcon} mr-2"></i> ${theme.btnText}`;
+
+            // 3. Swap Background Videos & Ensure they Play
+            const videos = [
+                { id: 'blur-landscape', src: theme.landscapeVideo },
+                { id: 'blur-portrait', src: theme.portraitVideo },
+                { id: 'main-landscape', src: theme.landscapeVideo },
+                { id: 'main-portrait', src: theme.portraitVideo }
+            ];
+            videos.forEach(v => {
+                const vidEl = document.getElementById(v.id);
+                vidEl.src = v.src;
+                vidEl.play();
+            });
+
+            // 4. Wipe Shelves Clean
+            shelvesBuilt = false;
+            document.getElementById('shelf-left').innerHTML = '';
+            document.getElementById('shelf-right').innerHTML = '';
+
+            // 5. Load New Playlist & Shuffle
+            if (player && player.loadPlaylist) {
+                player.loadPlaylist({
+                    list: theme.playlistId,
+                    listType: 'playlist'
+                });
+                setTimeout(() => { player.setShuffle(true); }, 500); // Small delay ensures playlist loads before shuffling
+            }
+        });
+
         // --- LIVE CLOCK ---
         setInterval(() => {
             const now = new Date();
@@ -240,7 +302,7 @@
         function onYouTubeIframeAPIReady() {
             player = new YT.Player('yt-player', {
                 height: '0', width: '0',
-                playerVars: { listType: 'playlist', list: 'PLblc3VxTs80U', autoplay: 0, controls: 0, disablekb: 1, fs: 0 },
+                playerVars: { listType: 'playlist', list: themes[currentTheme].playlistId, autoplay: 0, controls: 0, disablekb: 1, fs: 0 },
                 events: { 'onReady': onPlayerReady, 'onStateChange': onPlayerStateChange }
             });
         }
@@ -289,7 +351,7 @@
             const playIcon = document.getElementById('play-icon'), thumb = document.getElementById('album-art');
             if (event.data == YT.PlayerState.PLAYING) {
                 isPlaying = true;
-                if (!shelvesBuilt) buildShelves();
+                if (!shelvesBuilt) buildShelves(); // Generates NEW shelves anytime the playlist changes!
                 playIcon.classList.replace('fa-play', 'fa-pause'); playIcon.classList.remove('ml-1'); 
                 thumb.classList.replace('spin-paused', 'spin-slow');
                 
