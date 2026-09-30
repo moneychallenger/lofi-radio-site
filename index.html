@@ -16,7 +16,7 @@
         * { box-sizing: border-box; }
         body { margin: 0; overflow: hidden; font-family: 'Inter', sans-serif; background-color: #000; color: white; }
         
-        /* --- SPLASH SCREEN (Bold & Vibrant Theme) --- */
+        /* --- 1. SPLASH SCREEN (Vibrant Geometric Theme) --- */
         #splash {
             position: fixed; top: 0; left: 0; width: 100%; height: 100%;
             background: #FCFBF8; z-index: 50; display: flex; align-items: center; justify-content: center; flex-direction: column; color: #000; transition: opacity 0.5s, visibility 0.5s; overflow: hidden;
@@ -28,7 +28,7 @@
         .shape-2::after { content: ''; width: 80px; height: 80px; background-color: #FF33A1; border-radius: 50%; }
         .shape-3 { position: absolute; top: 20%; right: 15%; width: 120px; height: 120px; background-color: #FF33A1; border-radius: 30px; border-bottom-left-radius: 0; transform: rotate(20deg); z-index: -1; }
 
-        /* --- ORIGINAL IMMERSIVE BACKGROUNDS --- */
+        /* --- 2. ORIGINAL IMMERSIVE BACKGROUNDS --- */
         .bg-blur {
             position: fixed;
             top: -5%; left: -5%;
@@ -68,7 +68,7 @@
             .shelf { display: none !important; } 
         }
 
-        /* --- ORIGINAL WOODEN SHELVES --- */
+        /* --- 3. ORIGINAL WOODEN SHELVES (Edge Extension Vibe) --- */
         .shelf {
             position: absolute;
             z-index: 10;
@@ -98,7 +98,7 @@
             padding: 20px 0; padding-left: 15px;
         }
 
-        /* Custom Scrollbar */
+        /* Custom Scrollbar for Shelves */
         ::-webkit-scrollbar { width: 4px; height: 4px; }
         ::-webkit-scrollbar-track { background: rgba(0,0,0,0.3); }
         ::-webkit-scrollbar-thumb { background: #6b442a; border-radius: 10px; }
@@ -127,9 +127,9 @@
         .disk::after { content: ''; position: absolute; width: 10px; height: 10px; background: #1a0b05; border-radius: 50%; border: 1px solid #000; }
         .disk:hover { transform: scale(1.15) rotate(15deg); box-shadow: 0 10px 20px rgba(0,0,0,1), 0 0 20px rgba(255, 170, 50, 0.5); border-color: #444; }
 
-        /* --- UPDATED FROSTED GLASS UI (Minor Refinements) --- */
+        /* --- 4. REFINED FROSTED GLASS UI (Minor Player Tweaks) --- */
         .frosted-glass {
-            background: rgba(15, 15, 15, 0.65); /* Slightly darker for better contrast */
+            background: rgba(15, 15, 15, 0.65); 
             backdrop-filter: blur(16px); -webkit-backdrop-filter: blur(16px);
             border: 1px solid rgba(255, 255, 255, 0.12);
             box-shadow: 0 8px 32px rgba(0, 0, 0, 0.7); 
@@ -143,7 +143,7 @@
 </head>
 <body>
 
-    <!-- Bold, Vibrant Splash Screen -->
+    <!-- Bold, Vibrant Splash Screen (1st Page) -->
     <div id="splash">
         <div class="shape-1"></div>
         <div class="shape-2"></div>
@@ -173,7 +173,7 @@
 
     <!-- UI: Theme Switcher (Top Right) - Refined -->
     <div id="theme-switch-btn" class="absolute top-4 right-4 sm:top-6 sm:right-6 frosted-glass px-5 py-2.5 rounded-2xl cursor-pointer hover:bg-white/10 hover:border-white/30 transition-all duration-300 flex items-center font-medium text-sm sm:text-base text-white/90">
-        <i class="fas fa-dumbbell mr-2.5 text-white/70"></i> <span>Switch to Gym</span>
+        <i class="fas fa-dumbbell mr-2.5 text-white/70"></i> <span id="theme-btn-text">Switch to Gym</span>
     </div>
 
     <!-- UI: Player Bar - Refined -->
@@ -184,16 +184,16 @@
                 <img id="album-art" src="https://via.placeholder.com/150" alt="Album Art" class="w-12 h-12 sm:w-14 sm:h-14 rounded-full object-cover spin-paused border border-white/20 shadow-md">
                 <div class="flex flex-col w-full justify-center">
                     <span id="song-title" class="text-sm sm:text-base font-bold text-white truncate drop-shadow-md">Loading Stream...</span>
-                    <span id="song-artist" class="text-xs sm:text-sm text-gray-300 truncate mb-1.5">Connecting to YouTube</span>
+                    <span id="song-artist" class="text-xs sm:text-sm text-gray-300 truncate mb-1.5" id="status-text">Connecting to YouTube</span>
                     
-                    <!-- Progress Bar (Minor Tweak) -->
+                    <!-- Progress Bar -->
                     <div id="progress-container" class="w-full h-1.5 bg-white/20 rounded-full overflow-hidden cursor-pointer hover:h-2 transition-all duration-200">
                         <div id="progress-fill" class="h-full bg-white shadow-[0_0_8px_rgba(255,255,255,0.8)] w-0 transition-all duration-1000 ease-linear pointer-events-none rounded-full"></div>
                     </div>
                 </div>
             </div>
 
-            <!-- Controls (Minor Tweak) -->
+            <!-- Controls -->
             <div class="flex items-center space-x-4 sm:space-x-6">
                 <button id="prev" class="text-white/60 hover:text-white hover:scale-110 transition-all focus:outline-none"><i class="fas fa-step-backward text-sm sm:text-lg"></i></button>
                 <button id="play-pause" class="w-12 h-12 sm:w-14 sm:h-14 bg-white text-black rounded-full flex items-center justify-center hover:scale-105 hover:bg-gray-200 transition-all focus:outline-none shadow-[0_0_15px_rgba(255,255,255,0.3)]"><i id="play-icon" class="fas fa-play ml-1 text-lg"></i></button>
@@ -203,7 +203,7 @@
         </div>
     </div>
 
-    <!-- Hidden YouTube Player Container (Crucial for the fix) -->
+    <!-- Hidden YouTube Player Container (Crucial for audio) -->
     <div id="player-container" class="hidden">
         <div id="yt-player"></div>
     </div>
@@ -231,8 +231,10 @@
 
         // --- GLOBAL VARIABLES ---
         let player, isPlaying = false, progressInterval, shelvesBuilt = false, hasEntered = false;
+        let internetRetryTimeout = null; 
+        const BUFFER_TIMEOUT_MS = 12000; // 12 seconds allowed for buffering before auto-retry
 
-        // --- NUKE AND REBUILD YOUTUBE PLAYER ---
+        // --- YOUTUBE PLAYER INITIALIZATION ---
         function initYouTubePlayer(playlistId, isSwitching = false) {
             player = new YT.Player('yt-player', {
                 height: '0', width: '0',
@@ -247,13 +249,37 @@
                             }, 500);
                         }
                     }, 
-                    'onStateChange': onPlayerStateChange 
+                    'onStateChange': onPlayerStateChange,
+                    'onError': onPlayerError // Handle actual stream breaks
                 }
             });
         }
 
         function onYouTubeIframeAPIReady() {
             initYouTubePlayer(themes[currentTheme].playlistId, false);
+        }
+
+        // --- SLOW INTERNET / ERROR RECOVERY HANDLERS ---
+        function onPlayerError(event) {
+            console.warn("YouTube Stream Error Detected. Auto-skipping to recover...", event.data);
+            document.getElementById('song-artist').innerText = "Reconnecting stream...";
+            // Automatically skip to the next video to recover the broken connection
+            setTimeout(() => {
+                if (player && typeof player.nextVideo === 'function') {
+                    player.nextVideo();
+                }
+            }, 2000);
+        }
+
+        function handleSlowInternetRetry() {
+            console.log("Stream stuck buffering. Forcing a background reload...");
+            document.getElementById('song-artist').innerText = "Buffering... Re-syncing stream";
+            if (player && typeof player.getCurrentTime === 'function') {
+                // A quick "seek" to the exact current time forces YouTube to dump stale buffers and retry downloading
+                const currentTime = player.getCurrentTime();
+                player.seekTo(currentTime, true);
+                player.playVideo();
+            }
         }
 
         // --- BUTTON EVENT LISTENERS ---
@@ -298,6 +324,8 @@
             document.getElementById('shelf-right').innerHTML = '';
             document.getElementById('song-title').innerText = "Loading Station...";
             document.getElementById('song-artist').innerText = "Connecting to YouTube...";
+            
+            clearTimeout(internetRetryTimeout);
 
             if (player && typeof player.destroy === 'function') {
                 player.destroy();
@@ -306,7 +334,15 @@
             initYouTubePlayer(theme.playlistId, true);
         });
 
-        document.getElementById('play-pause').addEventListener('click', () => isPlaying ? player.pauseVideo() : player.playVideo());
+        document.getElementById('play-pause').addEventListener('click', () => {
+            if (isPlaying) {
+                player.pauseVideo();
+                clearTimeout(internetRetryTimeout); // Prevent auto-retry if user intentionally paused
+            } else {
+                player.playVideo();
+            }
+        });
+        
         document.getElementById('prev').addEventListener('click', () => player.previousVideo());
         document.getElementById('next').addEventListener('click', () => player.nextVideo());
         document.getElementById('progress-container').addEventListener('click', function(e) {
@@ -325,7 +361,7 @@
             document.getElementById('clock').innerText = hours + ':' + (minutes < 10 ? '0' + minutes : minutes) + ' ' + ampm;
         }, 1000);
 
-        // --- AUTO-DETECT BLURRED AREA ---
+        // --- AUTO-DETECT BLURRED AREA & SHELVES ---
         function calculateShelves() {
             const isLandscape = window.innerWidth > window.innerHeight;
             const shelfLeft = document.getElementById('shelf-left');
@@ -363,7 +399,6 @@
             if (v.readyState >= 1) calculateShelves(); 
         });
 
-        // --- BUILD SHELVES ---
         function buildShelves() {
             if (shelvesBuilt) return;
             
@@ -396,6 +431,10 @@
         // --- UPDATE UI ON SONG CHANGE ---
         function onPlayerStateChange(event) {
             const playIcon = document.getElementById('play-icon'), thumb = document.getElementById('album-art');
+            
+            // Clear any active retry timeouts anytime the state changes
+            clearTimeout(internetRetryTimeout);
+
             if (event.data == YT.PlayerState.PLAYING) {
                 isPlaying = true;
                 
@@ -413,7 +452,13 @@
                 progressInterval = setInterval(() => {
                     if(player && player.getDuration) document.getElementById('progress-fill').style.width = ((player.getCurrentTime() / player.getDuration()) * 100) + '%';
                 }, 1000);
+
+            } else if (event.data == YT.PlayerState.BUFFERING) {
+                // Video is buffering - likely due to slow internet. Start the retry clock.
+                internetRetryTimeout = setTimeout(handleSlowInternetRetry, BUFFER_TIMEOUT_MS);
+                
             } else {
+                // Paused, Ended, Unstarted, or Cued
                 isPlaying = false;
                 playIcon.classList.replace('fa-pause', 'fa-play'); playIcon.classList.add('ml-1'); 
                 thumb.classList.replace('spin-slow', 'spin-paused');
