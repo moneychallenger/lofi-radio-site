@@ -8,11 +8,18 @@
     <script src="https://cdn.tailwindcss.com"></script>
     <!-- FontAwesome for Icons -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Poppins Font for that bold, geometric tech style -->
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;800;900&display=swap" rel="stylesheet">
     
     <style>
         /* Base Styles & Universal Box Sizing */
         * { box-sizing: border-box; }
-        body { margin: 0; overflow: hidden; font-family: 'Inter', sans-serif; background-color: #000; }
+        body { 
+            margin: 0; 
+            overflow: hidden; 
+            font-family: 'Poppins', sans-serif; 
+            background-color: #FCFBF8; /* Cream Background */
+        }
         
         /* 1. Cinematic Blur Backgrounds (Only used on Laptop) */
         .bg-blur {
@@ -21,7 +28,7 @@
             width: 110dvw; height: 110dvh;
             z-index: -3;
             object-fit: cover;
-            filter: blur(25px) brightness(0.3);
+            filter: blur(35px) brightness(0.7); /* Lightened up to match the bright theme */
             transition: opacity 0.5s ease;
         }
 
@@ -58,89 +65,100 @@
             .shelf { display: none !important; } 
         }
 
-        /* --- THE DYNAMIC WOODEN SHELVES (Laptop Only) --- */
+        /* --- THE DYNAMIC SHELVES (Laptop Only) - REDESIGNED --- */
         .shelf {
             position: absolute;
             z-index: 10;
             display: none; 
-            background-color: #2b180d;
-            background-image: repeating-linear-gradient(45deg, rgba(0,0,0,0.1) 0px, rgba(0,0,0,0.1) 2px, transparent 2px, transparent 4px);
             display: flex;
             align-items: center;
             justify-content: flex-start;
-            gap: 15px;
+            gap: 20px;
             overflow: auto;
         }
 
+        /* Flat, bold colors from the reference image */
         #shelf-left {
             top: 0; left: 0; height: 100dvh;
             flex-direction: column;
-            border-right: 4px solid #111;
-            box-shadow: inset -15px 0 25px -5px rgba(255, 170, 50, 0.6), inset -2px 0 5px rgba(255, 220, 120, 0.9);
-            padding: 20px 0; padding-right: 15px;
+            background-color: #007AFF; /* Vivid Blue */
+            padding: 30px 0; padding-right: 15px;
         }
 
         #shelf-right {
             top: 0; right: 0; height: 100dvh;
             flex-direction: column;
-            border-left: 4px solid #111;
-            box-shadow: inset 15px 0 25px -5px rgba(255, 170, 50, 0.6), inset 2px 0 5px rgba(255, 220, 120, 0.9);
-            padding: 20px 0; padding-left: 15px;
+            background-color: #D4FF00; /* Lime Green */
+            padding: 30px 0; padding-left: 15px;
         }
 
         /* Custom Scrollbar for Shelves */
-        ::-webkit-scrollbar { width: 4px; height: 4px; }
-        ::-webkit-scrollbar-track { background: rgba(0,0,0,0.3); }
-        ::-webkit-scrollbar-thumb { background: #6b442a; border-radius: 10px; }
-        ::-webkit-scrollbar-thumb:hover { background: #8c5b3a; }
+        ::-webkit-scrollbar { width: 6px; height: 6px; }
+        ::-webkit-scrollbar-track { background: transparent; }
+        ::-webkit-scrollbar-thumb { background: #FF33A1; border-radius: 10px; } /* Hot Pink Scrollbar */
+        ::-webkit-scrollbar-thumb:hover { background: #E6007E; }
 
-        /* The Vinyl Record Disks */
+        /* The Vinyl Record Disks - Redesigned */
         .disk-wrapper { 
             flex-shrink: 0; 
             width: 75%; 
             aspect-ratio: 1 / 1; 
-            max-height: 85px; max-width: 85px;
+            max-height: 95px; max-width: 95px;
             margin: 0 auto;
         }
         .disk {
             width: 100%; height: 100%;
             border-radius: 50%;
-            background-color: #050505;
-            border: 2px solid #222;
-            box-shadow: 0 6px 15px rgba(0,0,0,0.9), inset 0 0 10px rgba(255,200,100,0.1);
+            background-color: #FF33A1; /* Pink record base */
+            border: 4px solid #FCFBF8; /* Cream Border */
+            box-shadow: 0 10px 25px rgba(0,0,0,0.15);
             cursor: pointer;
-            transition: all 0.3s ease;
+            transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275); /* Bouncy transition */
             position: relative;
             display: flex; align-items: center; justify-content: center;
         }
-        .disk img { width: 65%; height: 65%; border-radius: 50%; object-fit: cover; pointer-events: none; }
-        .disk::after { content: ''; position: absolute; width: 10px; height: 10px; background: #1a0b05; border-radius: 50%; border: 1px solid #000; }
-        .disk:hover { transform: scale(1.15) rotate(15deg); box-shadow: 0 10px 20px rgba(0,0,0,1), 0 0 20px rgba(255, 170, 50, 0.5); border-color: #444; }
+        .disk img { width: 70%; height: 70%; border-radius: 50%; object-fit: cover; pointer-events: none; border: 2px solid white; }
+        .disk::after { content: ''; position: absolute; width: 12px; height: 12px; background: #007AFF; border-radius: 50%; border: 2px solid #fff; }
+        .disk:hover { transform: scale(1.15) rotate(15deg); box-shadow: 0 15px 30px rgba(0,0,0,0.25); }
 
-        /* Frosted Glass UI */
-        .frosted-glass {
-            background: rgba(20, 20, 20, 0.6);
-            backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px);
-            border: 1px solid rgba(255, 255, 255, 0.1);
-            box-shadow: 0 4px 30px rgba(0, 0, 0, 0.6); z-index: 20;
+        /* Solid Bold UI Containers (Replaced Frosted Glass) */
+        .bold-ui {
+            background: #ffffff;
+            border-radius: 100px;
+            box-shadow: 0 12px 35px rgba(0, 0, 0, 0.08); 
+            border: 1px solid #f0f0f0;
+            z-index: 20;
         }
 
         .spin-slow { animation: spin 4s linear infinite; }
         .spin-paused { animation-play-state: paused; }
         @keyframes spin { 100% { transform: rotate(360deg); } }
 
-        /* Splash Screen */
+        /* Splash Screen - Redesigned to match image theme */
         #splash {
             position: fixed; top: 0; left: 0; width: 100%; height: 100%;
-            background: #000; z-index: 50; display: flex; align-items: center; justify-content: center; flex-direction: column; color: white; transition: opacity 0.5s;
+            background: #FCFBF8; z-index: 50; display: flex; align-items: center; justify-content: center; flex-direction: column; color: #000; transition: opacity 0.5s; overflow: hidden;
         }
+        
+        /* Decorative Background Pop-Art Shapes for Splash Screen */
+        .shape-1 { position: absolute; top: 10%; left: 5%; width: 180px; height: 180px; background-color: #007AFF; border-radius: 60px; border-top-right-radius: 10px; transform: rotate(-15deg); z-index: -1; }
+        .shape-2 { position: absolute; bottom: 15%; right: 10%; width: 220px; height: 220px; background-color: #D4FF00; border-radius: 50%; display: flex; align-items: center; justify-content: center; z-index: -1; }
+        .shape-2::after { content: ''; width: 80px; height: 80px; background-color: #FF33A1; border-radius: 50%; }
+        .shape-3 { position: absolute; top: 20%; right: 15%; width: 120px; height: 120px; background-color: #FF33A1; border-radius: 30px; border-bottom-left-radius: 0; transform: rotate(20deg); z-index: -1; }
     </style>
 </head>
-<body class="text-white">
+<body>
 
+    <!-- Redesigned Splash Screen -->
     <div id="splash">
-        <h1 class="text-3xl font-bold mb-6 tracking-wider">STATION SELECT</h1>
-        <button id="enter-btn" class="px-8 py-3 bg-white text-black font-semibold rounded-full hover:bg-gray-200 transition">Enter Station</button>
+        <!-- Abstract Shapes matching the design file -->
+        <div class="shape-1"></div>
+        <div class="shape-2"></div>
+        <div class="shape-3"></div>
+        
+        <h1 class="text-5xl md:text-8xl font-black mb-2 tracking-tighter text-black text-center z-10 px-4">STATION SELECT</h1>
+        <p class="text-xl md:text-2xl font-bold text-[#007AFF] mb-10 z-10 text-center">Your vibes, satisfied.</p>
+        <button id="enter-btn" class="px-10 py-4 bg-[#D4FF00] text-black font-extrabold text-lg md:text-xl rounded-full hover:scale-105 hover:bg-[#C5F013] transition shadow-[0_8px_20px_rgba(212,255,0,0.4)] z-10">Enter Station</button>
     </div>
 
     <!-- Blurred Backgrounds (Laptop Only) -->
@@ -156,33 +174,39 @@
     <div id="shelf-right" class="shelf"></div>
 
     <!-- UI: Clock (Top Left) -->
-    <div class="absolute top-4 left-4 sm:top-6 sm:left-6 frosted-glass px-4 py-2 rounded-xl">
-        <span id="clock" class="text-lg sm:text-2xl font-semibold tracking-wide drop-shadow-md">00:00 AM</span>
+    <div class="absolute top-4 left-4 sm:top-6 sm:left-6 bold-ui px-6 py-3">
+        <span id="clock" class="text-base sm:text-lg font-bold tracking-tight text-black">00:00 AM</span>
     </div>
 
     <!-- UI: Theme Switcher (Top Right) -->
-    <div id="theme-switch-btn" class="absolute top-4 right-4 sm:top-6 sm:right-6 frosted-glass px-4 py-2 rounded-xl cursor-pointer hover:bg-white hover:text-black transition duration-300 flex items-center font-semibold text-sm sm:text-base">
+    <div id="theme-switch-btn" class="absolute top-4 right-4 sm:top-6 sm:right-6 bg-[#007AFF] text-white px-6 py-3 rounded-full cursor-pointer hover:bg-[#005CE6] hover:-translate-y-1 transition duration-300 flex items-center font-bold text-sm sm:text-base shadow-[0_10px_25px_rgba(0,122,255,0.4)] z-20">
         <i class="fas fa-dumbbell mr-2"></i> Switch to Gym
     </div>
 
     <!-- UI: Player Bar -->
-    <div class="absolute bottom-4 sm:bottom-6 w-full flex justify-center px-4 z-20">
-        <div class="frosted-glass w-full max-w-2xl rounded-full flex items-center justify-between p-3 sm:p-4">
-            <div class="flex items-center space-x-3 sm:space-x-4 overflow-hidden w-2/3">
-                <img id="album-art" src="https://via.placeholder.com/150" alt="Album Art" class="w-10 h-10 sm:w-14 sm:h-14 rounded-full object-cover spin-paused">
+    <div class="absolute bottom-6 sm:bottom-10 w-full flex justify-center px-4 z-20">
+        <div class="bold-ui w-full max-w-3xl flex items-center justify-between p-3 sm:p-4 pr-4 sm:pr-6">
+            
+            <div class="flex items-center space-x-4 sm:space-x-5 overflow-hidden w-2/3 pl-1 sm:pl-2">
+                <img id="album-art" src="https://via.placeholder.com/150" alt="Album Art" class="w-12 h-12 sm:w-16 sm:h-16 rounded-full object-cover spin-paused shadow-md border-2 border-gray-100">
                 <div class="flex flex-col w-full">
-                    <span id="song-title" class="text-sm sm:text-base font-bold truncate">Loading Stream...</span>
-                    <span id="song-artist" class="text-xs sm:text-sm text-gray-300 truncate">Connecting to YouTube</span>
-                    <div id="progress-container" class="w-full h-1 bg-gray-600 rounded-full mt-1.5 overflow-hidden cursor-pointer hover:h-2 transition-all duration-200">
-                        <div id="progress-fill" class="h-full bg-white w-0 transition-all duration-1000 ease-linear pointer-events-none"></div>
+                    <span id="song-title" class="text-base sm:text-lg font-black text-black truncate tracking-tight">Loading Stream...</span>
+                    <span id="song-artist" class="text-xs sm:text-sm text-gray-500 font-semibold truncate mb-1.5">Connecting to YouTube</span>
+                    
+                    <!-- Progress Bar -->
+                    <div id="progress-container" class="w-full h-2 bg-gray-100 rounded-full overflow-hidden cursor-pointer hover:h-3 transition-all duration-200">
+                        <div id="progress-fill" class="h-full bg-[#FF33A1] w-0 transition-all duration-1000 ease-linear pointer-events-none rounded-full"></div>
                     </div>
                 </div>
             </div>
-            <div class="flex items-center space-x-3 sm:space-x-5 pr-2 sm:pr-4">
-                <button id="prev" class="text-gray-300 hover:text-white transition focus:outline-none"><i class="fas fa-step-backward text-sm sm:text-lg"></i></button>
-                <button id="play-pause" class="w-10 h-10 sm:w-12 sm:h-12 bg-white text-black rounded-full flex items-center justify-center hover:scale-105 transition focus:outline-none"><i id="play-icon" class="fas fa-play ml-1"></i></button>
-                <button id="next" class="text-gray-300 hover:text-white transition focus:outline-none"><i class="fas fa-step-forward text-sm sm:text-lg"></i></button>
+
+            <!-- Controls -->
+            <div class="flex items-center space-x-3 sm:space-x-6">
+                <button id="prev" class="text-gray-400 hover:text-[#007AFF] transition focus:outline-none"><i class="fas fa-step-backward text-base sm:text-xl"></i></button>
+                <button id="play-pause" class="w-12 h-12 sm:w-14 sm:h-14 bg-[#D4FF00] text-black rounded-full flex items-center justify-center hover:scale-110 transition focus:outline-none shadow-md"><i id="play-icon" class="fas fa-play ml-1 text-lg"></i></button>
+                <button id="next" class="text-gray-400 hover:text-[#007AFF] transition focus:outline-none"><i class="fas fa-step-forward text-base sm:text-xl"></i></button>
             </div>
+            
         </div>
     </div>
 
