@@ -8,7 +8,7 @@
     <script src="https://cdn.tailwindcss.com"></script>
     <!-- FontAwesome for Icons -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <!-- Fonts: Poppins for Splash, Inter for Main UI -->
+    <!-- Fonts: Poppins for Splash & UI, Inter for generic text -->
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;800;900&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
     
     <style>
@@ -98,42 +98,34 @@
             padding: 20px 0; padding-left: 15px;
         }
 
-        /* Custom Scrollbar for Shelves */
         ::-webkit-scrollbar { width: 4px; height: 4px; }
         ::-webkit-scrollbar-track { background: rgba(0,0,0,0.3); }
         ::-webkit-scrollbar-thumb { background: #6b442a; border-radius: 10px; }
         ::-webkit-scrollbar-thumb:hover { background: #8c5b3a; }
 
-        /* The Vinyl Record Disks */
         .disk-wrapper { 
-            flex-shrink: 0; 
-            width: 75%; 
-            aspect-ratio: 1 / 1; 
-            max-height: 85px; max-width: 85px;
-            margin: 0 auto;
+            flex-shrink: 0; width: 75%; aspect-ratio: 1 / 1; 
+            max-height: 85px; max-width: 85px; margin: 0 auto;
         }
         .disk {
-            width: 100%; height: 100%;
-            border-radius: 50%;
-            background-color: #050505;
-            border: 2px solid #222;
+            width: 100%; height: 100%; border-radius: 50%;
+            background-color: #050505; border: 2px solid #222;
             box-shadow: 0 6px 15px rgba(0,0,0,0.9), inset 0 0 10px rgba(255,200,100,0.1);
-            cursor: pointer;
-            transition: all 0.3s ease;
-            position: relative;
-            display: flex; align-items: center; justify-content: center;
+            cursor: pointer; transition: all 0.3s ease;
+            position: relative; display: flex; align-items: center; justify-content: center;
         }
         .disk img { width: 65%; height: 65%; border-radius: 50%; object-fit: cover; pointer-events: none; }
         .disk::after { content: ''; position: absolute; width: 10px; height: 10px; background: #1a0b05; border-radius: 50%; border: 1px solid #000; }
         .disk:hover { transform: scale(1.15) rotate(15deg); box-shadow: 0 10px 20px rgba(0,0,0,1), 0 0 20px rgba(255, 170, 50, 0.5); border-color: #444; }
 
-        /* --- 4. REFINED FROSTED GLASS UI (Minor Player Tweaks) --- */
-        .frosted-glass {
-            background: rgba(15, 15, 15, 0.65); 
+        /* --- 4. POP-ART UI (Frosted glass preserved, but styled brightly) --- */
+        .pop-ui {
+            background: rgba(252, 251, 248, 0.85); /* Light Cream Frosted */
             backdrop-filter: blur(16px); -webkit-backdrop-filter: blur(16px);
-            border: 1px solid rgba(255, 255, 255, 0.12);
-            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.7); 
+            border: 1px solid rgba(255, 255, 255, 0.6);
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.15); 
             z-index: 20;
+            font-family: 'Poppins', sans-serif;
         }
 
         .spin-slow { animation: spin 4s linear infinite; }
@@ -166,38 +158,38 @@
     <div id="shelf-left" class="shelf"></div>
     <div id="shelf-right" class="shelf"></div>
 
-    <!-- UI: Clock (Top Left) - Refined -->
-    <div class="absolute top-4 left-4 sm:top-6 sm:left-6 frosted-glass px-5 py-2.5 rounded-2xl">
-        <span id="clock" class="text-base sm:text-xl font-semibold tracking-wide drop-shadow-md text-white/90">00:00 AM</span>
+    <!-- UI: Clock (Top Left) - Pop Frosted Glass -->
+    <div class="absolute top-4 left-4 sm:top-6 sm:left-6 pop-ui px-5 py-2.5 rounded-2xl">
+        <span id="clock" class="text-base sm:text-xl font-bold tracking-tight text-black">00:00 AM</span>
     </div>
 
-    <!-- UI: Theme Switcher (Top Right) - Refined -->
-    <div id="theme-switch-btn" class="absolute top-4 right-4 sm:top-6 sm:right-6 frosted-glass px-5 py-2.5 rounded-2xl cursor-pointer hover:bg-white/10 hover:border-white/30 transition-all duration-300 flex items-center font-medium text-sm sm:text-base text-white/90">
-        <i class="fas fa-dumbbell mr-2.5 text-white/70"></i> <span id="theme-btn-text">Switch to Gym</span>
+    <!-- UI: Theme Switcher (Top Right) - Bold Pop Button -->
+    <div id="theme-switch-btn" class="absolute top-4 right-4 sm:top-6 sm:right-6 bg-[#007AFF] text-white px-5 py-2.5 rounded-2xl cursor-pointer hover:bg-[#005CE6] hover:-translate-y-1 transition-all duration-300 flex items-center font-bold text-sm sm:text-base shadow-[0_8px_20px_rgba(0,122,255,0.4)]" style="font-family: 'Poppins', sans-serif;">
+        <i class="fas fa-dumbbell mr-2.5"></i> <span id="theme-btn-text">Switch to Gym</span>
     </div>
 
-    <!-- UI: Player Bar - Refined -->
+    <!-- UI: Player Bar - Pop Frosted Glass -->
     <div class="absolute bottom-6 sm:bottom-10 w-full flex justify-center px-4 z-20">
-        <div class="frosted-glass w-full max-w-3xl rounded-[2rem] flex items-center justify-between p-3 sm:p-4 pr-4 sm:pr-6">
+        <div class="pop-ui w-full max-w-3xl rounded-[2rem] flex items-center justify-between p-3 sm:p-4 pr-4 sm:pr-6">
             
             <div class="flex items-center space-x-4 sm:space-x-5 overflow-hidden w-2/3 pl-1 sm:pl-2">
-                <img id="album-art" src="https://via.placeholder.com/150" alt="Album Art" class="w-12 h-12 sm:w-14 sm:h-14 rounded-full object-cover spin-paused border border-white/20 shadow-md">
+                <img id="album-art" src="https://via.placeholder.com/150" alt="Album Art" class="w-12 h-12 sm:w-14 sm:h-14 rounded-full object-cover spin-paused border-2 border-[#007AFF] shadow-md">
                 <div class="flex flex-col w-full justify-center">
-                    <span id="song-title" class="text-sm sm:text-base font-bold text-white truncate drop-shadow-md">Loading Stream...</span>
-                    <span id="song-artist" class="text-xs sm:text-sm text-gray-300 truncate mb-1.5" id="status-text">Connecting to YouTube</span>
+                    <span id="song-title" class="text-sm sm:text-base font-bold text-black truncate tracking-tight">Loading Stream...</span>
+                    <span id="song-artist" class="text-xs sm:text-sm text-gray-500 font-semibold truncate mb-1.5" id="status-text">Connecting to YouTube</span>
                     
-                    <!-- Progress Bar -->
-                    <div id="progress-container" class="w-full h-1.5 bg-white/20 rounded-full overflow-hidden cursor-pointer hover:h-2 transition-all duration-200">
-                        <div id="progress-fill" class="h-full bg-white shadow-[0_0_8px_rgba(255,255,255,0.8)] w-0 transition-all duration-1000 ease-linear pointer-events-none rounded-full"></div>
+                    <!-- Progress Bar (Pop Pink) -->
+                    <div id="progress-container" class="w-full h-2 bg-gray-200 rounded-full overflow-hidden cursor-pointer hover:h-3 transition-all duration-200">
+                        <div id="progress-fill" class="h-full bg-[#FF33A1] w-0 transition-all duration-1000 ease-linear pointer-events-none rounded-full"></div>
                     </div>
                 </div>
             </div>
 
-            <!-- Controls -->
+            <!-- Controls (Pop Lime Green & Dark Gray) -->
             <div class="flex items-center space-x-4 sm:space-x-6">
-                <button id="prev" class="text-white/60 hover:text-white hover:scale-110 transition-all focus:outline-none"><i class="fas fa-step-backward text-sm sm:text-lg"></i></button>
-                <button id="play-pause" class="w-12 h-12 sm:w-14 sm:h-14 bg-white text-black rounded-full flex items-center justify-center hover:scale-105 hover:bg-gray-200 transition-all focus:outline-none shadow-[0_0_15px_rgba(255,255,255,0.3)]"><i id="play-icon" class="fas fa-play ml-1 text-lg"></i></button>
-                <button id="next" class="text-white/60 hover:text-white hover:scale-110 transition-all focus:outline-none"><i class="fas fa-step-forward text-sm sm:text-lg"></i></button>
+                <button id="prev" class="text-gray-400 hover:text-[#007AFF] hover:scale-110 transition-all focus:outline-none"><i class="fas fa-step-backward text-sm sm:text-lg"></i></button>
+                <button id="play-pause" class="w-12 h-12 sm:w-14 sm:h-14 bg-[#D4FF00] text-black rounded-full flex items-center justify-center hover:scale-110 transition-all focus:outline-none shadow-[0_4px_15px_rgba(212,255,0,0.4)]"><i id="play-icon" class="fas fa-play ml-1 text-lg"></i></button>
+                <button id="next" class="text-gray-400 hover:text-[#007AFF] hover:scale-110 transition-all focus:outline-none"><i class="fas fa-step-forward text-sm sm:text-lg"></i></button>
             </div>
             
         </div>
@@ -263,7 +255,6 @@
         function onPlayerError(event) {
             console.warn("YouTube Stream Error Detected. Auto-skipping to recover...", event.data);
             document.getElementById('song-artist').innerText = "Reconnecting stream...";
-            // Automatically skip to the next video to recover the broken connection
             setTimeout(() => {
                 if (player && typeof player.nextVideo === 'function') {
                     player.nextVideo();
@@ -275,7 +266,6 @@
             console.log("Stream stuck buffering. Forcing a background reload...");
             document.getElementById('song-artist').innerText = "Buffering... Re-syncing stream";
             if (player && typeof player.getCurrentTime === 'function') {
-                // A quick "seek" to the exact current time forces YouTube to dump stale buffers and retry downloading
                 const currentTime = player.getCurrentTime();
                 player.seekTo(currentTime, true);
                 player.playVideo();
@@ -302,7 +292,7 @@
             currentTheme = currentTheme === 'lofi' ? 'gym' : 'lofi';
             const theme = themes[currentTheme];
 
-            document.getElementById('theme-switch-btn').innerHTML = `<i class="fas ${theme.btnIcon} mr-2.5 text-white/70"></i> <span>${theme.btnText}</span>`;
+            document.getElementById('theme-switch-btn').innerHTML = `<i class="fas ${theme.btnIcon} mr-2.5"></i> <span>${theme.btnText}</span>`;
 
             const videos = [
                 { id: 'blur-landscape', src: theme.landscapeVideo },
